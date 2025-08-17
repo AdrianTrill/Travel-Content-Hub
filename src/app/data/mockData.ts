@@ -50,17 +50,17 @@ export const quickStats: QuickStat[] = [
   {
     label: 'Destinations',
     value: '24',
-    icon: GlobeAltIcon,
+    icon: 'GlobeAltIcon',
   },
   {
     label: 'Scheduled',
     value: '12',
-    icon: CalendarIcon,
+    icon: 'CalendarIcon',
   },
   {
     label: 'Engagement',
     value: '+23%',
-    icon: ArrowTrendingUpIcon,
+    icon: 'ArrowTrendingUpIcon',
   },
 ];
 

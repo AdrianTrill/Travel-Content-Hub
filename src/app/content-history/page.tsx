@@ -4,6 +4,8 @@ import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import { quickStats } from '../data/mockData';
 import { MagnifyingGlassIcon, FunnelIcon, EyeIcon, PencilIcon, ArrowDownTrayIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
+import AnimatedContainer from '../dashboard/components/AnimatedContainer';
+import AnimatedCounter from '../dashboard/components/AnimatedCounter';
 
 export default function ContentHistory() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,15 +69,18 @@ export default function ContentHistory() {
   ];
 
   return (
-    <div className="h-fit" style={{background: 'linear-gradient(180deg, #F7F1E9 0%, #EDE3E7 100%)'}}>
+    <div className="h-fit bg-[#F7F1E9]">
       <Header />
       <div className="flex">
         <Sidebar quickStats={quickStats} currentPage="content-history" />
         <main className="flex-1 p-8">
+          <AnimatedContainer direction="up" delay={0.1}>
           <h1 className="text-3xl font-extrabold mb-4" style={{color: '#340B37'}}>Content History</h1>
+          </AnimatedContainer>
 
           {/* Filters & Search Section */}
-          <div className="card p-6 mb-6">
+          <AnimatedContainer direction="up" delay={0.2}>
+            <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6 mb-6">
             <div className="flex items-center space-x-2 mb-4">
               <FunnelIcon className="h-5 w-5" style={{color: '#6E2168'}} />
               <h2 className="text-lg font-semibold" style={{color: '#340B37'}}>Filters & Search</h2>
@@ -169,15 +174,17 @@ export default function ContentHistory() {
               </div>
             </div>
           </div>
+          </AnimatedContainer>
 
           {/* Content History List */}
           <div className="space-y-4">
-            {contentHistory.map((content) => (
-              <div key={content.id} className="card p-6">
+            {contentHistory.map((content, index) => (
+              <AnimatedContainer key={content.id} direction="up" delay={0.3 + index * 0.1}>
+                <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6">
                 <div className="flex items-start justify-between mb-4">
                   {/* Left side - Content Type Label */}
                   <div className="flex items-center space-x-3">
-                    <div className="flex items-center space-x-2 px-2 py-1 rounded-full" style={{backgroundColor: '#F7F1E9'}}>
+                      <div className="flex items-center space-x-2 px-2 py-1 rounded-full border" style={{backgroundColor: '#F7F1E9', borderColor: '#DAE1E9'}}>
                       {content.typeIcon === 'pencil' ? (
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#6E2168'}}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -231,36 +238,44 @@ export default function ContentHistory() {
                   <div className="flex items-center space-x-1">
                     <EyeIcon className="h-4 w-4" style={{color: '#6E2168'}} />
                     <div className="flex flex-col">
-                      <span className="text-lg font-bold" style={{color: '#340B37'}}>{content.views}</span>
+                        <span className="text-lg font-bold" style={{color: '#340B37'}}>
+                          <AnimatedCounter value={content.views} duration={2} />
+                        </span>
                       <span className="text-sm" style={{color: '#545D6B'}}>Views</span>
                     </div>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#6E2168'}}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                     </svg>
                     <div className="flex flex-col">
-                      <span className="text-lg font-bold" style={{color: '#340B37'}}>{content.shares}</span>
+                        <span className="text-lg font-bold" style={{color: '#340B37'}}>
+                          <AnimatedCounter value={content.shares} duration={2} />
+                        </span>
                       <span className="text-sm" style={{color: '#545D6B'}}>Shares</span>
                     </div>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#6E2168'}}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.38-3.081 1.1-4.451.197-.403.526-.75.923-1.01.397-.26.854-.398 1.323-.398h.908c.889 0 1.713.518 1.972 1.368.141.55.22 1.113.22 1.676 0 .563-.079 1.126-.22 1.676z" />
                     </svg>
                     <div className="flex flex-col">
-                      <span className="text-lg font-bold" style={{color: content.engagement === '7.8%' ? '#CD8F23' : '#0F612D'}}>{content.engagement}</span>
+                        <span className="text-lg font-bold" style={{color: content.engagement === '7.8%' ? '#CD8F23' : '#0F612D'}}>
+                          <AnimatedCounter value={content.engagement} duration={2} />
+                        </span>
                       <span className="text-sm" style={{color: '#545D6B'}}>Engagement</span>
                     </div>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#6E2168'}}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                     <div className="flex flex-col">
-                      <span className="text-lg font-bold" style={{color: '#0F612D'}}>{content.growth}</span>
+                        <span className="text-lg font-bold" style={{color: '#0F612D'}}>
+                          <AnimatedCounter value={content.growth} duration={2} />
+                        </span>
                       <span className="text-sm" style={{color: '#545D6B'}}>Growth</span>
-                    </div>
+                      </div>
                   </div>
                 </div>
 
@@ -295,6 +310,7 @@ export default function ContentHistory() {
                   </div>
                 </div>
               </div>
+              </AnimatedContainer>
             ))}
           </div>
         </main>

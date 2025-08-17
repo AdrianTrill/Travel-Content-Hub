@@ -33,5 +33,5 @@ export interface MetricCard {
 export interface QuickStat {
   label: string;
   value: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  icon: string;
 } 

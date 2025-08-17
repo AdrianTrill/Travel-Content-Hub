@@ -17,7 +17,7 @@ export default function LandmarksCard({ landmarks }: LandmarksCardProps) {
   );
 
   return (
-    <div className="card p-6">
+    <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6">
       <div className="section-title mb-4">
         <StarIcon className="h-5 w-5 text-primary" />
         <span>Historical Landmarks</span>

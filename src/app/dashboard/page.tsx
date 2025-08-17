@@ -4,6 +4,7 @@ import MetricCard from './components/MetricCard';
 import WeatherCard from './components/WeatherCard';
 import EventsCard from './components/EventsCard';
 import LandmarksCard from './components/LandmarksCard';
+import AnimatedContainer from './components/AnimatedContainer';
 import {
   metricCards,
   quickStats,
@@ -14,29 +15,43 @@ import {
 
 export default function Dashboard() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#F7F1E9]">
       <Header />
       <div className="flex">
         <Sidebar quickStats={quickStats} currentPage="dashboard" />
         <main className="flex-1 p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-extrabold text-primary-dark">Dashboard</h1>
-            <div className="text-sm text-gray-medium">
-              Last updated <span className="font-semibold text-primary-dark">2 minutes ago</span>
+          <AnimatedContainer direction="up" delay={0.1}>
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-3xl font-extrabold text-primary-dark">Dashboard</h1>
+              <div className="text-sm text-gray-medium">
+                Last updated <span className="font-semibold text-primary-dark">2 minutes ago</span>
+              </div>
             </div>
-          </div>
+          </AnimatedContainer>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {metricCards.map((metric) => (
-              <MetricCard key={metric.title} metric={metric} />
-            ))}
-          </div>
+          <AnimatedContainer direction="up" delay={0.2}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {metricCards.map((metric, index) => (
+                <AnimatedContainer key={metric.title} direction="up" delay={0.3 + index * 0.1}>
+                  <MetricCard metric={metric} />
+                </AnimatedContainer>
+              ))}
+            </div>
+          </AnimatedContainer>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <WeatherCard weatherData={weatherData} />
-            <EventsCard events={events} />
-            <LandmarksCard landmarks={landmarks} />
-          </div>
+          <AnimatedContainer direction="up" delay={0.6}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <AnimatedContainer direction="up" delay={0.7}>
+                <WeatherCard weatherData={weatherData} />
+              </AnimatedContainer>
+              <AnimatedContainer direction="up" delay={0.8}>
+                <EventsCard events={events} />
+              </AnimatedContainer>
+              <AnimatedContainer direction="up" delay={0.9}>
+                <LandmarksCard landmarks={landmarks} />
+              </AnimatedContainer>
+            </div>
+          </AnimatedContainer>
         </main>
       </div>
     </div>

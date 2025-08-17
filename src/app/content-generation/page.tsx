@@ -1,24 +1,28 @@
 'use client';
+
 import { useState } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import ContentEditor from './components/ContentEditor';
+import AnimatedContainer from '../dashboard/components/AnimatedContainer';
 import { quickStats } from '../data/mockData';
+
+interface Content {
+  title: string;
+  content: string;
+  type: string;
+  readingTime: string;
+  quality: string;
+}
 
 export default function ContentGeneration() {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [selectedContent, setSelectedContent] = useState({
-    title: '',
-    content: '',
-    type: '',
-    readingTime: '',
-    quality: ''
-  });
+  const [selectedContent, setSelectedContent] = useState<Content | null>(null);
 
-  const handleEdit = (content: any) => {
+  const handleEdit = (content: Content) => {
     setSelectedContent({
       title: content.title,
-      content: content.description,
+      content: content.content,
       type: content.type,
       readingTime: content.readingTime,
       quality: content.quality
@@ -31,16 +35,19 @@ export default function ContentGeneration() {
   };
 
   return (
-    <div className="h-fit" style={{background: 'linear-gradient(180deg, #F7F1E9 0%, #EDE3E7 100%)'}}>
+    <div className="h-fit bg-[#F7F1E9]">
       <Header />
       <div className="flex">
         <Sidebar quickStats={quickStats} currentPage="content-generation" />
         <main className="flex-1 p-8">
+          <AnimatedContainer direction="up" delay={0.1}>
           <h1 className="text-3xl font-extrabold text-primary-dark mb-4">Content Generation</h1>
+          </AnimatedContainer>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Content Parameters Section */}
-            <div className="card p-6">
+            <AnimatedContainer direction="up" delay={0.2}>
+              <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6">
               <div className="flex items-center space-x-2 mb-6">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#6E2168'}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -75,13 +82,15 @@ export default function ContentGeneration() {
                     <input
                       type="text"
                       placeholder="dd-----yyyy"
-                      className="flex-1 px-3 py-2 border border-gray-border rounded-lg text-gray-dark bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className="flex-1 px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        style={{backgroundColor: '#FFFFFF'}}
                     />
                     <span className="text-gray-400">-</span>
                     <input
                       type="text"
                       placeholder="dd-----yyyy"
-                      className="flex-1 px-3 py-2 border border-gray-border rounded-lg text-gray-dark bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className="flex-1 px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        style={{backgroundColor: '#FFFFFF'}}
                     />
                   </div>
                 </div>
@@ -108,9 +117,11 @@ export default function ContentGeneration() {
                 </button>
               </div>
             </div>
+            </AnimatedContainer>
 
             {/* AI Generated Suggestions Section */}
-            <div className="card p-6">
+            <AnimatedContainer direction="up" delay={0.3}>
+              <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6">
               <div className="flex items-center space-x-2 mb-6">
                 <svg className="h-5 w-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -121,6 +132,7 @@ export default function ContentGeneration() {
 
               <div className="space-y-4">
                 {/* Blog Post Suggestion */}
+                  <AnimatedContainer direction="up" delay={0.4}>
                 <div className="border border-gray-border rounded-lg p-4" style={{backgroundColor: '#F8F9F9'}}>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-2">
@@ -163,12 +175,12 @@ export default function ContentGeneration() {
                       <button 
                         onClick={() => handleEdit({
                           title: 'Hidden Gems: 5 Secret Spots in Paris Only Locals Know',
-                          description: 'Discover the enchanting side streets and hidden courtyards that most tourists never see. From secret gardens to underground wine bars...',
+                              content: 'Discover the enchanting side streets and hidden courtyards that most tourists never see. From secret gardens to underground wine bars...',
                           type: 'Blog Post',
                           readingTime: '4 min',
                           quality: 'High'
                         })}
-                        className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1 flex items-center space-x-1" 
+                            className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
                         style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
                       >
                         <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
@@ -176,7 +188,7 @@ export default function ContentGeneration() {
                         </svg>
                         <span>Edit</span>
                       </button>
-                      <button className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
+                          <button className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
                         <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12l2-2 4-4 2-2" />
                         </svg>
@@ -191,8 +203,10 @@ export default function ContentGeneration() {
                     </div>
                   </div>
                 </div>
+                  </AnimatedContainer>
 
                 {/* Instagram Post Suggestion */}
+                  <AnimatedContainer direction="up" delay={0.5}>
                 <div className="border border-gray-border rounded-lg p-4" style={{backgroundColor: '#F8F9F9'}}>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-2">
@@ -235,12 +249,12 @@ export default function ContentGeneration() {
                       <button 
                         onClick={() => handleEdit({
                           title: 'Paris Magic in 60 Seconds ✨',
-                          description: 'Early morning light hitting the Seine, empty cobblestone streets, and the city waking up. This is the Paris dreams are made of! FR #ParisVibes #TravelMagic',
+                              content: 'Early morning light hitting the Seine, empty cobblestone streets, and the city waking up. This is the Paris dreams are made of! FR #ParisVibes #TravelMagic',
                           type: 'Instagram Post',
                           readingTime: '30 sec',
                           quality: 'Medium'
                         })}
-                        className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1 flex items-center space-x-1" 
+                            className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
                         style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
                       >
                         <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
@@ -248,7 +262,7 @@ export default function ContentGeneration() {
                         </svg>
                         <span>Edit</span>
                       </button>
-                      <button className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
+                          <button className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
                         <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12l2-2 4-4 2-2" />
                         </svg>
@@ -263,8 +277,10 @@ export default function ContentGeneration() {
                     </div>
                   </div>
                 </div>
+                  </AnimatedContainer>
 
                 {/* Facebook Post Suggestion */}
+                  <AnimatedContainer direction="up" delay={0.6}>
                 <div className="border border-gray-border rounded-lg p-4" style={{backgroundColor: '#F8F9F9'}}>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-2">
@@ -306,12 +322,12 @@ export default function ContentGeneration() {
                       <button 
                         onClick={() => handleEdit({
                           title: 'Why Paris Should Be Your Next Solo Travel Destination',
-                          description: 'Planning a solo adventure? Here\'s why Paris offers the perfect blend of safety, culture, and unforgettable experiences for independent travelers...',
+                              content: 'Planning a solo adventure? Here\'s why Paris offers the perfect blend of safety, culture, and unforgettable experiences for independent travelers...',
                           type: 'Facebook Post',
                           readingTime: '2 min',
                           quality: 'High'
                         })}
-                        className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1 flex items-center space-x-1" 
+                            className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
                         style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
                       >
                         <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
@@ -319,7 +335,7 @@ export default function ContentGeneration() {
                         </svg>
                         <span>Edit</span>
                       </button>
-                      <button className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
+                          <button className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
                         <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12l2-2 4-4 2-2" />
                         </svg>
@@ -333,19 +349,23 @@ export default function ContentGeneration() {
                       </button>
                     </div>
                   </div>
+                    </div>
+                  </AnimatedContainer>
                 </div>
               </div>
-            </div>
+            </AnimatedContainer>
           </div>
         </main>
       </div>
 
       {/* Content Editor Modal */}
+      {selectedContent && (
       <ContentEditor
         isOpen={isEditorOpen}
         onClose={handleCloseEditor}
         content={selectedContent}
       />
+      )}
     </div>
   );
 } 
