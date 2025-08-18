@@ -1,0 +1,36 @@
+# Unlocks the macOS login keychain to allow access to stored certificates and keys during automated build or 
+# deployment processes (e.g. Docker builds or code signing).
+security -v unlock-keychain ~/Library/Keychains/login.keychain-db
+
+# Build and start
+docker compose up -d --build
+
+# Verify status
+docker compose ps
+
+# See logs
+docker compose logs -f frontend
+
+# Stop
+docker compose down
+
+
+
+--- Utils ---
+# Force build (without cache)
+docker compose build --no-cache
+
+# Quick restart
+docker compose restart frontend
+
+# Run in foreground (for debugging)
+docker compose up frontend
+
+# Enter container for debugging
+docker exec -it {container-name} sh
+
+# Verify resource usage
+docker stats
+
+# Clean containers and old images
+docker system prune -a
