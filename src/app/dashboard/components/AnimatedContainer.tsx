@@ -8,13 +8,15 @@ interface AnimatedContainerProps {
   delay?: number;
   className?: string;
   direction?: 'up' | 'down' | 'left' | 'right';
+  trigger?: 'inView' | 'immediate';
 }
 
 export default function AnimatedContainer({ 
   children, 
   delay = 0, 
   className = '',
-  direction = 'up' 
+  direction = 'up',
+  trigger = 'inView'
 }: AnimatedContainerProps) {
   const getVariants = () => {
     const baseVariants = {
@@ -23,7 +25,6 @@ export default function AnimatedContainer({
         opacity: 1,
         transition: {
           duration: 0.6,
-          ease: [0.25, 0.46, 0.45, 0.94],
           delay: delay
         }
       }
@@ -58,6 +59,19 @@ export default function AnimatedContainer({
         return baseVariants;
     }
   };
+
+  if (trigger === 'immediate') {
+    return (
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={getVariants()}
+        className={className}
+      >
+        {children}
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

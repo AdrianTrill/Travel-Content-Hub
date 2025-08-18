@@ -7,15 +7,17 @@ interface AnimatedCounterProps {
   value: string | number;
   duration?: number;
   className?: string;
+  trigger?: 'inView' | 'immediate';
 }
 
-export default function AnimatedCounter({ value, duration = 2, className = '' }: AnimatedCounterProps) {
+export default function AnimatedCounter({ value, duration = 2, className = '', trigger = 'inView' }: AnimatedCounterProps) {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   useEffect(() => {
-    if (isInView) {
+    const shouldAnimate = trigger === 'immediate' || isInView;
+    if (shouldAnimate) {
       let numericValue: number;
       
       if (typeof value === 'string') {
@@ -48,7 +50,7 @@ export default function AnimatedCounter({ value, duration = 2, className = '' }:
       
       requestAnimationFrame(animate);
     }
-  }, [isInView, value, duration]);
+  }, [isInView, value, duration, trigger]);
 
   // Ensure we always show the final value after animation completes
   useEffect(() => {

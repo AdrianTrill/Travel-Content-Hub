@@ -1,6 +1,6 @@
 import { StarIcon } from '@heroicons/react/24/outline';
 import { MapPinIcon, EyeIcon } from '@heroicons/react/24/solid';
-import { Landmark } from '../types';
+import { Landmark } from '../../types';
 
 interface LandmarksCardProps {
   landmarks: Landmark[];

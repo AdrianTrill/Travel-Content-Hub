@@ -1,5 +1,5 @@
 import { CalendarDaysIcon, MapPinIcon, UserGroupIcon } from '@heroicons/react/24/outline';
-import { Event } from '../types';
+import { Event } from '../../types';
 
 interface EventsCardProps {
   events: Event[];

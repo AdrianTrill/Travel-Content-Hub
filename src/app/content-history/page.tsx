@@ -74,12 +74,12 @@ export default function ContentHistory() {
       <div className="flex">
         <Sidebar quickStats={quickStats} currentPage="content-history" />
         <main className="flex-1 p-8">
-          <AnimatedContainer direction="up" delay={0.1}>
+          <AnimatedContainer direction="up" delay={0.1} trigger="immediate">
           <h1 className="text-3xl font-extrabold mb-4" style={{color: '#340B37'}}>Content History</h1>
           </AnimatedContainer>
 
           {/* Filters & Search Section */}
-          <AnimatedContainer direction="up" delay={0.2}>
+          <AnimatedContainer direction="up" delay={0.2} trigger="immediate">
             <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6 mb-6">
             <div className="flex items-center space-x-2 mb-4">
               <FunnelIcon className="h-5 w-5" style={{color: '#6E2168'}} />
@@ -179,7 +179,7 @@ export default function ContentHistory() {
           {/* Content History List */}
           <div className="space-y-4">
             {contentHistory.map((content, index) => (
-              <AnimatedContainer key={content.id} direction="up" delay={0.3 + index * 0.1}>
+              <AnimatedContainer key={content.id} direction="up" delay={0.3 + index * 0.1} trigger="immediate">
                 <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6">
                 <div className="flex items-start justify-between mb-4">
                   {/* Left side - Content Type Label */}
@@ -239,7 +239,7 @@ export default function ContentHistory() {
                     <EyeIcon className="h-4 w-4" style={{color: '#6E2168'}} />
                     <div className="flex flex-col">
                         <span className="text-lg font-bold" style={{color: '#340B37'}}>
-                          <AnimatedCounter value={content.views} duration={2} />
+                          <AnimatedCounter value={content.views} duration={2} trigger="immediate" />
                         </span>
                       <span className="text-sm" style={{color: '#545D6B'}}>Views</span>
                     </div>
@@ -250,7 +250,7 @@ export default function ContentHistory() {
                     </svg>
                     <div className="flex flex-col">
                         <span className="text-lg font-bold" style={{color: '#340B37'}}>
-                          <AnimatedCounter value={content.shares} duration={2} />
+                          <AnimatedCounter value={content.shares} duration={2} trigger="immediate" />
                         </span>
                       <span className="text-sm" style={{color: '#545D6B'}}>Shares</span>
                     </div>
@@ -261,7 +261,7 @@ export default function ContentHistory() {
                     </svg>
                     <div className="flex flex-col">
                         <span className="text-lg font-bold" style={{color: content.engagement === '7.8%' ? '#CD8F23' : '#0F612D'}}>
-                          <AnimatedCounter value={content.engagement} duration={2} />
+                          <AnimatedCounter value={content.engagement} duration={2} trigger="immediate" />
                         </span>
                       <span className="text-sm" style={{color: '#545D6B'}}>Engagement</span>
                     </div>
@@ -272,7 +272,7 @@ export default function ContentHistory() {
                     </svg>
                     <div className="flex flex-col">
                         <span className="text-lg font-bold" style={{color: '#0F612D'}}>
-                          <AnimatedCounter value={content.growth} duration={2} />
+                          <AnimatedCounter value={content.growth} duration={2} trigger="immediate" />
                         </span>
                       <span className="text-sm" style={{color: '#545D6B'}}>Growth</span>
                       </div>

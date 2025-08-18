@@ -1,4 +1,4 @@
-import { MetricCard as MetricCardType } from '../types';
+import { MetricCard as MetricCardType } from '../../types';
 import AnimatedCounter from './AnimatedCounter';
 
 interface MetricCardProps {

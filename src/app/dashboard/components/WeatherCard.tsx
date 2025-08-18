@@ -1,4 +1,4 @@
-import { WeatherInfo } from '../types';
+import { WeatherInfo } from '../../types';
 
 interface WeatherCardProps {
   weatherData: WeatherInfo[];
