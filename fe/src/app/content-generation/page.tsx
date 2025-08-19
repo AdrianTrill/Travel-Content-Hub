@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import ContentEditor from './components/ContentEditor';
 import AnimatedContainer from '../dashboard/components/AnimatedContainer';
 import { quickStats } from '../data/mockData';
+import { DESTINATIONS } from '../types';
 
 interface Content {
   title: string;
@@ -13,11 +16,87 @@ interface Content {
   type: string;
   readingTime: string;
   quality: string;
+  tags: string[];
 }
 
 export default function ContentGeneration() {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [selectedContent, setSelectedContent] = useState<Content | null>(null);
+  const [destination, setDestination] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('contentGen_destination') || '';
+    }
+    return '';
+  });
+  const [startDate, setStartDate] = useState<Date | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('contentGen_startDate');
+      return saved ? new Date(saved) : null;
+    }
+    return null;
+  });
+  const [endDate, setEndDate] = useState<Date | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('contentGen_endDate');
+      return saved ? new Date(saved) : null;
+    }
+    return null;
+  });
+  const [contentType, setContentType] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('contentGen_contentType') || 'Blog Post';
+    }
+    return 'Blog Post';
+  });
+  const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<Content[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('contentGen_suggestions');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+  const [error, setError] = useState<string | null>(null);
+  const apiUrl = useMemo(() => (process.env.NEXT_PUBLIC_API_URL as string) || 'http://localhost:8000/api/v1', []);
+
+  // Save state changes to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('contentGen_destination', destination);
+    }
+  }, [destination]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (startDate) {
+        localStorage.setItem('contentGen_startDate', startDate.toISOString());
+      } else {
+        localStorage.removeItem('contentGen_startDate');
+      }
+    }
+  }, [startDate]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (endDate) {
+        localStorage.setItem('contentGen_endDate', endDate.toISOString());
+      } else {
+        localStorage.removeItem('contentGen_endDate');
+      }
+    }
+  }, [endDate]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('contentGen_contentType', contentType);
+    }
+  }, [contentType]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('contentGen_suggestions', JSON.stringify(suggestions));
+    }
+  }, [suggestions]);
 
   const handleEdit = (content: Content) => {
     setSelectedContent({
@@ -25,7 +104,8 @@ export default function ContentGeneration() {
       content: content.content,
       type: content.type,
       readingTime: content.readingTime,
-      quality: content.quality
+      quality: content.quality,
+      tags: content.tags
     });
     setIsEditorOpen(true);
   };
@@ -34,20 +114,85 @@ export default function ContentGeneration() {
     setIsEditorOpen(false);
   };
 
+  const handleContentUpdate = (updatedContent: Content) => {
+    setSuggestions(prev => prev.map(s => 
+      s.title === selectedContent?.title && s.content === selectedContent?.content 
+        ? updatedContent 
+        : s
+    ));
+    setSelectedContent(null);
+  };
+
+  const handleRegenerate = async (contentToRegenerate: Content) => {
+    if (!destination) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const res = await fetch(`${apiUrl}/generate-content`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          destination, 
+          start_date: startDate?.toISOString().split('T')[0] || '', 
+          end_date: endDate?.toISOString().split('T')[0] || '', 
+          content_type: contentType, 
+          language: 'en' 
+        })
+      });
+      
+      if (!res.ok) {
+        let message = 'Request failed';
+        try {
+          const err = await res.json();
+          message = err?.detail?.message || err?.detail || message;
+        } catch {}
+        setError(message);
+        return;
+      }
+      
+      const data = await res.json();
+      const newSuggestions: Content[] = (data?.suggestions || []).map((s: any) => ({
+        title: s.title,
+        content: s.content,
+        type: s.type,
+        readingTime: s.reading_time,
+        quality: s.quality,
+        tags: s.tags || [],
+      }));
+      
+      // Replace the specific card being edited with the first new suggestion
+      if (newSuggestions.length > 0) {
+        setSuggestions(prev => prev.map(s => 
+          s.title === contentToRegenerate.title && s.content === contentToRegenerate.content 
+            ? newSuggestions[0] 
+            : s
+        ));
+        setSelectedContent(newSuggestions[0]);
+      }
+    } catch (e) {
+      console.error(e);
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="h-fit bg-[#F7F1E9]">
+    <div className="min-h-screen bg-[#F7F1E9]">
       <Header />
-      <div className="flex">
+      <div className="flex flex-col md:flex-row relative">
         <Sidebar quickStats={quickStats} currentPage="content-generation" />
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
           <AnimatedContainer direction="up" delay={0.1}>
           <h1 className="text-3xl font-extrabold text-primary-dark mb-4">Content Generation</h1>
           </AnimatedContainer>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             {/* Content Parameters Section */}
             <AnimatedContainer direction="up" delay={0.2}>
-              <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6">
+              <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-4 md:p-6">
               <div className="flex items-center space-x-2 mb-6">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#6E2168'}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -55,7 +200,7 @@ export default function ContentGeneration() {
                 <h2 className="text-lg font-semibold" style={{color: '#340B37'}}>Content Parameters</h2>
               </div>
 
-              <div className="space-y-5">
+              <div className="space-y-4 md:space-y-5">
                 {/* Destination Input */}
                 <div>
                   <label className="flex items-center space-x-2 text-sm font-medium mb-2">
@@ -65,8 +210,16 @@ export default function ContentGeneration() {
                     </svg>
                     <span style={{color: '#340B37'}}>Destination</span>
                   </label>
-                  <select className="w-full px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" style={{backgroundColor: '#FFFFFF'}}>
-                    <option>Choose destination</option>
+                  <select
+                    value={destination}
+                    onChange={(e) => setDestination(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    style={{backgroundColor: '#FFFFFF'}}
+                  >
+                    <option value="">Choose destination</option>
+                    {DESTINATIONS.map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -78,19 +231,22 @@ export default function ContentGeneration() {
                     </svg>
                     <span style={{color: '#340B37'}}>Travel Dates</span>
                   </label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="text"
-                      placeholder="dd-----yyyy"
-                        className="flex-1 px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                        style={{backgroundColor: '#FFFFFF'}}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
+                    <DatePicker
+                      selected={startDate}
+                      onChange={(date) => setStartDate(date)}
+                      placeholderText="start date"
+                      dateFormat="MMM d, yyyy"
+                        className="w-full sm:flex-1 px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
-                    <span className="text-gray-400">-</span>
-                    <input
-                      type="text"
-                      placeholder="dd-----yyyy"
-                        className="flex-1 px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                        style={{backgroundColor: '#FFFFFF'}}
+                    <span className="hidden sm:inline text-gray-400">-</span>
+                    <DatePicker
+                      selected={endDate}
+                      onChange={(date) => setEndDate(date)}
+                      placeholderText="end date"
+                      minDate={startDate || undefined}
+                      dateFormat="MMM d, yyyy"
+                        className="w-full sm:flex-1 px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -103,17 +259,74 @@ export default function ContentGeneration() {
                     </svg>
                     <span style={{color: '#340B37'}}>Content Type</span>
                   </label>
-                  <select className="w-full px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" style={{backgroundColor: '#FFFFFF'}}>
-                    <option>Select content type</option>
+                  <select
+                    value={contentType}
+                    onChange={(e) => setContentType(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" style={{backgroundColor: '#FFFFFF'}}>
+                    <option>Blog Post</option>
+                    <option>Instagram Post</option>
+                    <option>Facebook Post</option>
                   </select>
                 </div>
 
                 {/* Generate Content Button */}
-                <button className="w-full bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2">
+                <button
+                  onClick={async () => {
+                    if (!destination) return;
+                    try {
+                      setLoading(true);
+                      setError(null);
+                      const res = await fetch(`${apiUrl}/generate-content`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ destination, start_date: startDate?.toISOString().split('T')[0], end_date: endDate?.toISOString().split('T')[0], content_type: contentType, language: 'en' })
+                      });
+                      if (!res.ok) {
+                        let message = 'Request failed';
+                        try {
+                          const err = await res.json();
+                          message = err?.detail?.message || err?.detail || message;
+                        } catch {}
+                        setSuggestions([]);
+                        setError(message);
+                        return;
+                      }
+                      const data = await res.json();
+                      const mapped: Content[] = (data?.suggestions || []).map((s: any) => ({
+                        title: s.title,
+                        content: s.content,
+                        type: s.type,
+                        readingTime: s.reading_time,
+                        quality: s.quality,
+                        tags: s.tags || [],
+                      }));
+                      setSuggestions(mapped);
+                    } catch (e) {
+                      console.error(e);
+                      setError('Something went wrong. Please try again.');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                  aria-busy={loading}
+                  className="w-full bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2 disabled:opacity-60">
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Generating...</span>
+                    </>
+                  ) : (
+                    <>
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
                   <span>Generate Content</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -121,7 +334,7 @@ export default function ContentGeneration() {
 
             {/* AI Generated Suggestions Section */}
             <AnimatedContainer direction="up" delay={0.3}>
-              <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6">
+              <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-4 md:p-6">
               <div className="flex items-center space-x-2 mb-6">
                 <svg className="h-5 w-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -131,9 +344,15 @@ export default function ContentGeneration() {
               </div>
 
               <div className="space-y-4">
-                {/* Blog Post Suggestion */}
-                  <AnimatedContainer direction="up" delay={0.4}>
-                <div className="border border-gray-border rounded-lg p-4" style={{backgroundColor: '#F8F9F9'}}>
+                {error ? (
+                  <div className="text-sm text-red-600">{error}</div>
+                ) : null}
+                {suggestions.length === 0 ? (
+                  <div className="text-sm text-gray-500">No suggestions yet. Fill parameters and click Generate.</div>
+                ) : null}
+                {suggestions.map((s, idx) => (
+                  <AnimatedContainer key={idx} direction="up" delay={0.2 + idx * 0.1}>
+                <div className="border border-gray-border rounded-lg p-3 md:p-4" style={{backgroundColor: '#F8F9F9'}}>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-2">
                       <div className="flex items-center space-x-2 px-2 py-1 rounded-full" style={{backgroundColor: '#F7F1E9'}}>
@@ -141,44 +360,45 @@ export default function ContentGeneration() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
                         </svg>
-                        <span className="text-sm font-medium" style={{color: '#6E2168'}}>Blog Post</span>
+                        <span className="text-sm font-medium" style={{color: '#6E2168'}}>{s.type}</span>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-dark">
+                    <div className="hidden sm:flex items-center space-x-4 text-sm text-gray-dark">
                       <span className="flex items-center space-x-1">
                         <svg className="h-4 w-4 text-gray-medium" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span>4 min</span>
+                        <span>{s.readingTime}</span>
                       </span>
                       <span className="flex items-center space-x-1 text-success">
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                         </svg>
-                        <span>High</span>
+                        <span>{s.quality}</span>
                       </span>
                     </div>
                   </div>
-                  <h3 className="text-lg font-semibold mb-3" style={{color: '#340B37'}}>
-                    Hidden Gems: 5 Secret Spots in Paris Only Locals Know
+                  <h3 className="text-base md:text-lg font-semibold mb-2 md:mb-3" style={{color: '#340B37'}}>
+                    {s.title}
                   </h3>
-                  <p className="text-sm text-gray-dark mb-4">
-                    Discover the enchanting side streets and hidden courtyards that most tourists never see. From secret gardens to underground wine bars...
+                  <p className="text-sm text-gray-dark mb-3 md:mb-4">
+                    {s.content}
                   </p>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div className="flex flex-wrap gap-2">
-                      <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: 'black'}}>Hidden Gems</span>
-                      <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: 'black'}}>Local Culture</span>
-                      <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: 'black'}}>Photography</span>
+                      {s.tags.map((tag, tagIdx) => (
+                        <span key={tagIdx} className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: 'black'}}>{tag}</span>
+                      ))}
                     </div>
                     <div className="flex space-x-2">
                       <button 
                         onClick={() => handleEdit({
-                          title: 'Hidden Gems: 5 Secret Spots in Paris Only Locals Know',
-                              content: 'Discover the enchanting side streets and hidden courtyards that most tourists never see. From secret gardens to underground wine bars...',
-                          type: 'Blog Post',
-                          readingTime: '4 min',
-                          quality: 'High'
+                          title: s.title,
+                          content: s.content,
+                          type: s.type,
+                          readingTime: s.readingTime,
+                          quality: s.quality,
+                          tags: s.tags,
                         })}
                             className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
                         style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
@@ -204,153 +424,7 @@ export default function ContentGeneration() {
                   </div>
                 </div>
                   </AnimatedContainer>
-
-                {/* Instagram Post Suggestion */}
-                  <AnimatedContainer direction="up" delay={0.5}>
-                <div className="border border-gray-border rounded-lg p-4" style={{backgroundColor: '#F8F9F9'}}>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="flex items-center space-x-2 px-2 py-1 rounded-full" style={{backgroundColor: '#F7F1E9'}}>
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#6E2168'}}>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span className="text-sm font-medium" style={{color: '#6E2168'}}>Instagram Post</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-dark">
-                      <span className="flex items-center space-x-1">
-                        <svg className="h-4 w-4 text-gray-medium" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>30 sec</span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#CD8F23'}}>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                        <span style={{color: '#CD8F23'}}>Medium</span>
-                      </span>
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-3" style={{color: '#340B37'}}>
-                    Paris Magic in 60 Seconds ✨
-                  </h3>
-                  <p className="text-sm text-gray-dark mb-4">
-                    Early morning light hitting the Seine, empty cobblestone streets, and the city waking up. This is the Paris dreams are made of! FR #ParisVibes #TravelMagic
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-wrap gap-2">
-                      <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: 'black'}}>Visual</span>
-                      <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: 'black'}}>Lifestyle</span>
-                      <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: 'black'}}>Quick Tips</span>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button 
-                        onClick={() => handleEdit({
-                          title: 'Paris Magic in 60 Seconds ✨',
-                              content: 'Early morning light hitting the Seine, empty cobblestone streets, and the city waking up. This is the Paris dreams are made of! FR #ParisVibes #TravelMagic',
-                          type: 'Instagram Post',
-                          readingTime: '30 sec',
-                          quality: 'Medium'
-                        })}
-                            className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
-                        style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
-                      >
-                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        <span>Edit</span>
-                      </button>
-                          <button className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
-                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12l2-2 4-4 2-2" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                      <button className="px-3 py-1 bg-primary text-white rounded text-sm hover:bg-primary-dark flex items-center space-x-1">
-                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                        </svg>
-                        <span>Publish</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                  </AnimatedContainer>
-
-                {/* Facebook Post Suggestion */}
-                  <AnimatedContainer direction="up" delay={0.6}>
-                <div className="border border-gray-border rounded-lg p-4" style={{backgroundColor: '#F8F9F9'}}>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="flex items-center space-x-2 px-2 py-1 rounded-full" style={{backgroundColor: '#F7F1E9'}}>
-                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" style={{color: '#6E2168'}}>
-                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.956v3.47h3.47l-.47 3.47h-3v8.385c5.737-.9 10.125-5.864 10.125-11.854z" />
-                        </svg>
-                        <span className="text-sm font-medium" style={{color: '#6E2168'}}>Facebook Post</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-dark">
-                      <span className="flex items-center space-x-1">
-                        <svg className="h-4 w-4 text-gray-medium" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>2 min</span>
-                      </span>
-                      <span className="flex items-center space-x-1 text-success">
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                        <span>High</span>
-                      </span>
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-3" style={{color: '#340B37'}}>
-                    Why Paris Should Be Your Next Solo Travel Destination
-                  </h3>
-                  <p className="text-sm text-gray-dark mb-4">
-                    Planning a solo adventure? Here's why Paris offers the perfect blend of safety, culture, and unforgettable experiences for independent travelers...
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-wrap gap-2">
-                      <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: 'black'}}>Solo Travel</span>
-                      <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: 'black'}}>Safety</span>
-                      <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: 'black'}}>Culture</span>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button 
-                        onClick={() => handleEdit({
-                          title: 'Why Paris Should Be Your Next Solo Travel Destination',
-                              content: 'Planning a solo adventure? Here\'s why Paris offers the perfect blend of safety, culture, and unforgettable experiences for independent travelers...',
-                          type: 'Facebook Post',
-                          readingTime: '2 min',
-                          quality: 'High'
-                        })}
-                            className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
-                        style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
-                      >
-                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        <span>Edit</span>
-                      </button>
-                          <button className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
-                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12l2-2 4-4 2-2" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                      <button className="px-3 py-1 bg-primary text-white rounded text-sm hover:bg-primary-dark flex items-center space-x-1">
-                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                        </svg>
-                        <span>Publish</span>
-                      </button>
-                    </div>
-                  </div>
-                    </div>
-                  </AnimatedContainer>
+                ))}
                 </div>
               </div>
             </AnimatedContainer>
@@ -364,6 +438,9 @@ export default function ContentGeneration() {
         isOpen={isEditorOpen}
         onClose={handleCloseEditor}
         content={selectedContent}
+        onUpdate={handleContentUpdate}
+        onRegenerate={handleRegenerate}
+        loading={loading}
       />
       )}
     </div>

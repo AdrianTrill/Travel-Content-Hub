@@ -10,13 +10,50 @@ interface ContentEditorProps {
     type: string;
     readingTime: string;
     quality: string;
+    tags: string[];
   };
+  onUpdate?: (updatedContent: {
+    title: string;
+    content: string;
+    type: string;
+    readingTime: string;
+    quality: string;
+    tags: string[];
+  }) => void;
+  onRegenerate?: (content: {
+    title: string;
+    content: string;
+    type: string;
+    readingTime: string;
+    quality: string;
+    tags: string[];
+  }) => void;
+  loading?: boolean;
 }
 
-export default function ContentEditor({ isOpen, onClose, content }: ContentEditorProps) {
+export default function ContentEditor({ isOpen, onClose, content, onUpdate, onRegenerate, loading }: ContentEditorProps) {
   const [activeTab, setActiveTab] = useState('content');
+  const [editedTitle, setEditedTitle] = useState(content.title);
+  const [editedContent, setEditedContent] = useState(content.content);
+
+  // Update local state when content prop changes
+  React.useEffect(() => {
+    setEditedTitle(content.title);
+    setEditedContent(content.content);
+  }, [content]);
 
   if (!isOpen) return null;
+
+  const handleSave = () => {
+    if (onUpdate) {
+      onUpdate({
+        ...content,
+        title: editedTitle,
+        content: editedContent,
+      });
+    }
+    onClose();
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -30,7 +67,8 @@ export default function ContentEditor({ isOpen, onClose, content }: ContentEdito
               </label>
               <input
                 type="text"
-                defaultValue={content.title}
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
               />
@@ -42,7 +80,8 @@ export default function ContentEditor({ isOpen, onClose, content }: ContentEdito
                 Content
               </label>
               <textarea
-                defaultValue={content.content}
+                value={editedContent}
+                onChange={(e) => setEditedContent(e.target.value)}
                 rows={8}
                 className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                 style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
@@ -56,8 +95,8 @@ export default function ContentEditor({ isOpen, onClose, content }: ContentEdito
           <div className="p-6">
             <h3 className="text-lg font-semibold mb-4" style={{color: '#340B37'}}>Preview for Website</h3>
             <div className="bg-white border border-gray-border rounded-lg p-6">
-              <h1 className="text-lg font-bold mb-4" style={{color: '#340B37'}}>{content.title}</h1>
-              <p className="text-sm leading-relaxed" style={{color: '#340B37'}}>{content.content}</p>
+              <h1 className="text-lg font-bold mb-4" style={{color: '#340B37'}}>{editedTitle}</h1>
+              <p className="text-sm leading-relaxed" style={{color: '#340B37'}}>{editedContent}</p>
             </div>
           </div>
         );
@@ -65,7 +104,7 @@ export default function ContentEditor({ isOpen, onClose, content }: ContentEdito
       case 'schedule':
         return (
           <div className="p-6">
-            <div className="flex space-x-6">
+            <div className="flex flex-col md:flex-row md:space-x-6 space-y-4 md:space-y-0">
               {/* Publish Date Field */}
               <div className="flex-1">
                 <label className="block text-sm font-medium mb-2" style={{color: '#340B37'}}>
@@ -110,13 +149,28 @@ export default function ContentEditor({ isOpen, onClose, content }: ContentEdito
     if (activeTab === 'content') {
       return (
         <div className="flex items-center justify-end px-6 pb-6 space-x-3">
-          <button className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
+          <button 
+            onClick={handleSave}
+            className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
+            style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
+          >
             <HandThumbUpIcon className="h-3 w-3" style={{color: '#340B37'}} />
             <span>Approve</span>
           </button>
-          <button className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
+          <button 
+            onClick={() => onRegenerate && onRegenerate(content)}
+            disabled={loading}
+            className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed" 
+            style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
+          >
+            {loading && (
+              <svg className="animate-spin h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            )}
             <HandThumbDownIcon className="h-3 w-3" style={{color: '#340B37'}} />
-            <span>Regenerate</span>
+            <span>{loading ? 'Regenerating...' : 'Regenerate'}</span>
           </button>
           <button 
             onClick={() => setActiveTab('preview')}
@@ -166,7 +220,7 @@ export default function ContentEditor({ isOpen, onClose, content }: ContentEdito
               <span>Schedule Post</span>
             </button>
             <button 
-              onClick={onClose}
+              onClick={handleSave}
               className="px-3 py-2 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-1" 
               style={{backgroundColor: '#6E2168', color: '#FFFFFF'}}
             >
@@ -191,7 +245,7 @@ export default function ContentEditor({ isOpen, onClose, content }: ContentEdito
             <h2 className="text-xl font-semibold" style={{color: '#340B37'}}>Content Editor</h2>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleSave}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <XMarkIcon className="h-6 w-6 text-gray-medium" />
@@ -199,10 +253,10 @@ export default function ContentEditor({ isOpen, onClose, content }: ContentEdito
         </div>
 
         {/* Tabs */}
-        <div className="flex w-full border-b border-gray-border">
+        <div className="flex flex-wrap w-full border-b border-gray-border">
           <button 
             onClick={() => setActiveTab('content')}
-            className={`flex-1 px-16 py-2 border-b-2 font-medium text-lg ${
+            className={`basis-1/3 flex-1 min-w-[33%] text-center px-4 md:px-16 py-2 border-b-2 font-medium text-sm md:text-lg ${
               activeTab === 'content' 
                 ? 'border-b-2' 
                 : 'border-transparent'
@@ -217,7 +271,7 @@ export default function ContentEditor({ isOpen, onClose, content }: ContentEdito
           </button>
           <button 
             onClick={() => setActiveTab('preview')}
-            className={`flex-1 px-16 py-2 border-b-2 font-medium text-lg ${
+            className={`basis-1/3 flex-1 min-w-[33%] text-center px-4 md:px-16 py-2 border-b-2 font-medium text-sm md:text-lg ${
               activeTab === 'preview' 
                 ? 'border-b-2' 
                 : 'border-transparent'
@@ -232,7 +286,7 @@ export default function ContentEditor({ isOpen, onClose, content }: ContentEdito
           </button>
           <button 
             onClick={() => setActiveTab('schedule')}
-            className={`flex-1 px-16 py-2 border-b-2 font-medium text-lg ${
+            className={`basis-1/3 flex-1 min-w-[33%] text-center px-4 md:px-16 py-2 border-b-2 font-medium text-sm md:text-lg ${
               activeTab === 'schedule' 
                 ? 'border-b-2' 
                 : 'border-transparent'

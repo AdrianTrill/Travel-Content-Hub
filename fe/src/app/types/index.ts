@@ -35,3 +35,21 @@ export interface QuickStat {
   value: string;
   icon: string;
 } 
+
+export const DESTINATIONS: string[] = [
+  'Paris',
+  'Tokyo',
+  'New York',
+  'Rome',
+  'London',
+  'Barcelona',
+  'Bangkok',
+  'Dubai',
+  'Sydney',
+  'Singapore',
+  'Berlin',
+  'Amsterdam',
+  'Lisbon',
+  'Prague',
+  'San Francisco',
+];

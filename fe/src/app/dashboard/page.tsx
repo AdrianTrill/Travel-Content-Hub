@@ -17,20 +17,20 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#F7F1E9]">
       <Header />
-      <div className="flex">
+      <div className="flex flex-col md:flex-row">
         <Sidebar quickStats={quickStats} currentPage="dashboard" />
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 md:p-8">
           <AnimatedContainer direction="up" delay={0.1}>
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-3xl font-extrabold text-primary-dark">Dashboard</h1>
-              <div className="text-sm text-gray-medium">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <h1 className="text-2xl md:text-3xl font-extrabold text-primary-dark">Dashboard</h1>
+              <div className="hidden sm:block text-sm text-gray-medium">
                 Last updated <span className="font-semibold text-primary-dark">2 minutes ago</span>
               </div>
             </div>
           </AnimatedContainer>
 
           <AnimatedContainer direction="up" delay={0.2}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
               {metricCards.map((metric, index) => (
                 <AnimatedContainer key={metric.title} direction="up" delay={0.3 + index * 0.1}>
                   <MetricCard metric={metric} />
@@ -40,7 +40,7 @@ export default function Dashboard() {
           </AnimatedContainer>
 
           <AnimatedContainer direction="up" delay={0.6}>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
               <AnimatedContainer direction="up" delay={0.7}>
                 <WeatherCard weatherData={weatherData} />
               </AnimatedContainer>

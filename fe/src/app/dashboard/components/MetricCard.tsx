@@ -18,7 +18,7 @@ export default function MetricCard({ metric }: MetricCardProps) {
       </div>
       <div className="space-y-2">
         <div className="text-2xl font-bold text-primary-dark">
-          <AnimatedCounter value={value} duration={1.5} />
+          <AnimatedCounter value={value} duration={1.5} trigger="immediate" />
         </div>
         <div className={`flex items-center space-x-1 text-sm ${
           isPositive ? '' : 'text-danger'
@@ -27,7 +27,7 @@ export default function MetricCard({ metric }: MetricCardProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
           <span>
-            <AnimatedCounter value={change} duration={1.2} />
+            <AnimatedCounter value={change} duration={1.2} trigger="immediate" />
           </span>
         </div>
       </div>
