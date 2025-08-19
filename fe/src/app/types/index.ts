@@ -47,4 +47,9 @@ export const DESTINATIONS: string[] = [
   'Dubai',
   'Sydney',
   'Singapore',
+  'Berlin',
+  'Amsterdam',
+  'Lisbon',
+  'Prague',
+  'San Francisco',
 ];

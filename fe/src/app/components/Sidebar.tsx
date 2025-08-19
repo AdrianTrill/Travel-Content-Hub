@@ -105,7 +105,7 @@ export default function Sidebar({ quickStats, currentPage = 'dashboard' }: Sideb
   }, [animateStats, quickStats]);
 
   return (
-    <aside className="w-72 bg-white border-r border-gray-border p-6">
+    <aside className="w-full sm:w-64 md:w-72 bg-white border-r border-gray-border p-4 md:p-6 md:sticky md:top-0 md:self-start z-10">
       <AnimatedContainer direction="up" delay={animateStats ? 0.1 : 0}>
         <div className="mb-8">
           <h3 className="text-xs font-semibold text-gray-medium uppercase tracking-wider mb-3">
@@ -118,7 +118,7 @@ export default function Sidebar({ quickStats, currentPage = 'dashboard' }: Sideb
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center space-x-3 px-2 md:px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     isActive
                       ? 'bg-primary text-white'
                       : 'text-gray-medium hover:text-gray-dark'
@@ -163,17 +163,17 @@ export default function Sidebar({ quickStats, currentPage = 'dashboard' }: Sideb
                 direction="up" 
                 delay={animateStats ? index * 0.1 : 0}
               >
-                <div className="bg-gray-lightest border border-gray-border rounded-lg p-3">
+                <div className="bg-gray-lightest border border-gray-border rounded-lg p-2 md:p-3">
                   <div className="flex items-center space-x-3">
                     <IconComponent className="h-5 w-5 text-primary" />
                     <div>
-                      <div className="text-lg font-semibold text-gray-dark">
+                      <div className="text-base md:text-lg font-semibold text-gray-dark">
                         {stat.label === 'Engagement' 
                           ? (counts[stat.label] !== undefined ? `+${Math.floor(counts[stat.label])}%` : '+0%')
                           : (counts[stat.label] !== undefined ? Math.floor(counts[stat.label]) : 0)
                         }
                       </div>
-                      <div className="text-sm text-gray-medium">{stat.label}</div>
+                      <div className="text-xs md:text-sm text-gray-medium">{stat.label}</div>
                     </div>
                   </div>
                 </div>

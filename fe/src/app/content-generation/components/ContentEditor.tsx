@@ -104,7 +104,7 @@ export default function ContentEditor({ isOpen, onClose, content, onUpdate, onRe
       case 'schedule':
         return (
           <div className="p-6">
-            <div className="flex space-x-6">
+            <div className="flex flex-col md:flex-row md:space-x-6 space-y-4 md:space-y-0">
               {/* Publish Date Field */}
               <div className="flex-1">
                 <label className="block text-sm font-medium mb-2" style={{color: '#340B37'}}>
@@ -253,10 +253,10 @@ export default function ContentEditor({ isOpen, onClose, content, onUpdate, onRe
         </div>
 
         {/* Tabs */}
-        <div className="flex w-full border-b border-gray-border">
+        <div className="flex flex-wrap w-full border-b border-gray-border">
           <button 
             onClick={() => setActiveTab('content')}
-            className={`flex-1 px-16 py-2 border-b-2 font-medium text-lg ${
+            className={`basis-1/3 flex-1 min-w-[33%] text-center px-4 md:px-16 py-2 border-b-2 font-medium text-sm md:text-lg ${
               activeTab === 'content' 
                 ? 'border-b-2' 
                 : 'border-transparent'
@@ -271,7 +271,7 @@ export default function ContentEditor({ isOpen, onClose, content, onUpdate, onRe
           </button>
           <button 
             onClick={() => setActiveTab('preview')}
-            className={`flex-1 px-16 py-2 border-b-2 font-medium text-lg ${
+            className={`basis-1/3 flex-1 min-w-[33%] text-center px-4 md:px-16 py-2 border-b-2 font-medium text-sm md:text-lg ${
               activeTab === 'preview' 
                 ? 'border-b-2' 
                 : 'border-transparent'
@@ -286,7 +286,7 @@ export default function ContentEditor({ isOpen, onClose, content, onUpdate, onRe
           </button>
           <button 
             onClick={() => setActiveTab('schedule')}
-            className={`flex-1 px-16 py-2 border-b-2 font-medium text-lg ${
+            className={`basis-1/3 flex-1 min-w-[33%] text-center px-4 md:px-16 py-2 border-b-2 font-medium text-sm md:text-lg ${
               activeTab === 'schedule' 
                 ? 'border-b-2' 
                 : 'border-transparent'

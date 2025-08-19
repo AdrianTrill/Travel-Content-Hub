@@ -69,18 +69,18 @@ export default function ContentHistory() {
   ];
 
   return (
-    <div className="h-fit bg-[#F7F1E9]">
+    <div className="min-h-screen bg-[#F7F1E9]">
       <Header />
-      <div className="flex">
+      <div className="flex flex-col md:flex-row relative">
         <Sidebar quickStats={quickStats} currentPage="content-history" />
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
           <AnimatedContainer direction="up" delay={0.1} trigger="immediate">
           <h1 className="text-3xl font-extrabold mb-4" style={{color: '#340B37'}}>Content History</h1>
           </AnimatedContainer>
 
           {/* Filters & Search Section */}
           <AnimatedContainer direction="up" delay={0.2} trigger="immediate">
-            <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6 mb-6">
+            <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-4 md:p-6 mb-4 md:mb-6">
             <div className="flex items-center space-x-2 mb-4">
               <FunnelIcon className="h-5 w-5" style={{color: '#6E2168'}} />
               <h2 className="text-lg font-semibold" style={{color: '#340B37'}}>Filters & Search</h2>
@@ -180,8 +180,8 @@ export default function ContentHistory() {
           <div className="space-y-4">
             {contentHistory.map((content, index) => (
               <AnimatedContainer key={content.id} direction="up" delay={0.3 + index * 0.1} trigger="immediate">
-                <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6">
-                <div className="flex items-start justify-between mb-4">
+                <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-4 md:p-6">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
                   {/* Left side - Content Type Label */}
                   <div className="flex items-center space-x-3">
                       <div className="flex items-center space-x-2 px-2 py-1 rounded-full border" style={{backgroundColor: '#F7F1E9', borderColor: '#DAE1E9'}}>
@@ -200,7 +200,7 @@ export default function ContentHistory() {
                   </div>
                   
                   {/* Right side - Metadata */}
-                  <div className="flex items-center space-x-4 text-sm" style={{color: '#545D6B'}}>
+                  <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm" style={{color: '#545D6B'}}>
                     <div className="flex items-center space-x-1">
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -224,8 +224,8 @@ export default function ContentHistory() {
                 </div>
 
                 {/* Title and Status Row */}
-                <div className="flex items-center space-x-3 mb-3">
-                  <h3 className="text-xl font-semibold" style={{color: '#340B37'}}>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-3">
+                  <h3 className="text-lg md:text-xl font-semibold" style={{color: '#340B37'}}>
                     {content.title}
                   </h3>
                   <span className={`px-2 py-1 rounded-full text-sm font-medium ${content.statusColor}`} style={{backgroundColor: content.statusBg}}>
@@ -234,7 +234,7 @@ export default function ContentHistory() {
                 </div>
 
                 {/* Metrics Row - All on one line */}
-                <div className="flex mb-3" style={{gap: '148px'}}>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-20 mb-3">
                   <div className="flex items-center space-x-1">
                     <EyeIcon className="h-4 w-4" style={{color: '#6E2168'}} />
                     <div className="flex flex-col">
@@ -280,7 +280,7 @@ export default function ContentHistory() {
                 </div>
 
                 {/* Tags and Action Buttons on same line */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2">
                     {content.tags.map((tag, index) => (

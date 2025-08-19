@@ -180,19 +180,19 @@ export default function ContentGeneration() {
   };
 
   return (
-    <div className="h-fit bg-[#F7F1E9]">
+    <div className="min-h-screen bg-[#F7F1E9]">
       <Header />
-      <div className="flex">
+      <div className="flex flex-col md:flex-row relative">
         <Sidebar quickStats={quickStats} currentPage="content-generation" />
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
           <AnimatedContainer direction="up" delay={0.1}>
           <h1 className="text-3xl font-extrabold text-primary-dark mb-4">Content Generation</h1>
           </AnimatedContainer>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             {/* Content Parameters Section */}
             <AnimatedContainer direction="up" delay={0.2}>
-              <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6">
+              <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-4 md:p-6">
               <div className="flex items-center space-x-2 mb-6">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#6E2168'}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -200,7 +200,7 @@ export default function ContentGeneration() {
                 <h2 className="text-lg font-semibold" style={{color: '#340B37'}}>Content Parameters</h2>
               </div>
 
-              <div className="space-y-5">
+              <div className="space-y-4 md:space-y-5">
                 {/* Destination Input */}
                 <div>
                   <label className="flex items-center space-x-2 text-sm font-medium mb-2">
@@ -231,22 +231,22 @@ export default function ContentGeneration() {
                     </svg>
                     <span style={{color: '#340B37'}}>Travel Dates</span>
                   </label>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
                     <DatePicker
                       selected={startDate}
                       onChange={(date) => setStartDate(date)}
                       placeholderText="start date"
                       dateFormat="MMM d, yyyy"
-                        className="flex-1 px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className="w-full sm:flex-1 px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
-                    <span className="text-gray-400">-</span>
+                    <span className="hidden sm:inline text-gray-400">-</span>
                     <DatePicker
                       selected={endDate}
                       onChange={(date) => setEndDate(date)}
                       placeholderText="end date"
                       minDate={startDate || undefined}
                       dateFormat="MMM d, yyyy"
-                        className="flex-1 px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className="w-full sm:flex-1 px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -309,11 +309,24 @@ export default function ContentGeneration() {
                     }
                   }}
                   disabled={loading}
+                  aria-busy={loading}
                   className="w-full bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2 disabled:opacity-60">
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Generating...</span>
+                    </>
+                  ) : (
+                    <>
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
-                  <span>{loading ? 'Generating...' : 'Generate Content'}</span>
+                  <span>Generate Content</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -321,7 +334,7 @@ export default function ContentGeneration() {
 
             {/* AI Generated Suggestions Section */}
             <AnimatedContainer direction="up" delay={0.3}>
-              <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6">
+              <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-4 md:p-6">
               <div className="flex items-center space-x-2 mb-6">
                 <svg className="h-5 w-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -339,7 +352,7 @@ export default function ContentGeneration() {
                 ) : null}
                 {suggestions.map((s, idx) => (
                   <AnimatedContainer key={idx} direction="up" delay={0.2 + idx * 0.1}>
-                <div className="border border-gray-border rounded-lg p-4" style={{backgroundColor: '#F8F9F9'}}>
+                <div className="border border-gray-border rounded-lg p-3 md:p-4" style={{backgroundColor: '#F8F9F9'}}>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-2">
                       <div className="flex items-center space-x-2 px-2 py-1 rounded-full" style={{backgroundColor: '#F7F1E9'}}>
@@ -350,7 +363,7 @@ export default function ContentGeneration() {
                         <span className="text-sm font-medium" style={{color: '#6E2168'}}>{s.type}</span>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-dark">
+                    <div className="hidden sm:flex items-center space-x-4 text-sm text-gray-dark">
                       <span className="flex items-center space-x-1">
                         <svg className="h-4 w-4 text-gray-medium" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -365,13 +378,13 @@ export default function ContentGeneration() {
                       </span>
                     </div>
                   </div>
-                  <h3 className="text-lg font-semibold mb-3" style={{color: '#340B37'}}>
+                  <h3 className="text-base md:text-lg font-semibold mb-2 md:mb-3" style={{color: '#340B37'}}>
                     {s.title}
                   </h3>
-                  <p className="text-sm text-gray-dark mb-4">
+                  <p className="text-sm text-gray-dark mb-3 md:mb-4">
                     {s.content}
                   </p>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div className="flex flex-wrap gap-2">
                       {s.tags.map((tag, tagIdx) => (
                         <span key={tagIdx} className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: 'black'}}>{tag}</span>

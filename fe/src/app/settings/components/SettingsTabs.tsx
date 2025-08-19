@@ -16,8 +16,8 @@ export default function SettingsTabs({ activeTab, onTabChange }: SettingsTabsPro
 
   return (
     <AnimatedContainer direction="up" delay={0.1}>
-      <div className="mb-6 sm:mb-8 w-full max-w-full overflow-hidden">
-        <nav className="flex w-full max-w-full">
+      <div className="mb-6 sm:mb-8 w-full max-w-full overflow-x-auto">
+        <nav className="flex w-max min-w-full gap-2 pr-2">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
