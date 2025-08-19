@@ -10,9 +10,8 @@ services:
     environment:
       - APP_ENV=production
       - API_V1_STR=/api/v1
-      - PROJECT_NAME=Pump Monitor API
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_MODEL=gpt-4.1
+      - PROJECT_NAME=Travel-Content-Hub
+      - OPENAI_MODEL=gpt-4o-mini
       - BACKEND_CORS_ORIGINS=["https://travel-hub.ccrolabs.com/api/v1", "http://localhost:3013"]
       - SECRET_KEY=${SECRET_KEY}
     restart: unless-stopped
