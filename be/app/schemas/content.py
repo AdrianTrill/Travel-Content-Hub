@@ -18,9 +18,34 @@ class ContentSuggestion(BaseModel):
     reading_time: str
     quality: str
     tags: List[str] = Field(default_factory=list, description='Relevant tags for the content')
+    highlights: List[str] = Field(default_factory=list, description='Key highlights or quick tips')
+    neighborhoods: List[str] = Field(default_factory=list, description='Referenced areas or neighborhoods')
+    recommended_spots: List[str] = Field(default_factory=list, description='Named spots (museums, parks, markets)')
+    price_range: Optional[str] = Field(default=None, description='Typical price guidance, if applicable')
+    best_times: Optional[str] = Field(default=None, description='Best times or seasonal guidance')
+    cautions: Optional[str] = Field(default=None, description='Brief caution notes if relevant')
 
 
 class ContentResponse(BaseModel):
     suggestions: List[ContentSuggestion]
+
+
+class ImageGenerationRequest(BaseModel):
+    title: str
+    content: str
+    destination: str
+    tags: List[str]
+    neighborhoods: List[str]
+    recommended_spots: List[str]
+    best_times: Optional[str] = None
+
+
+class ImageGenerationResponse(BaseModel):
+    image_prompt: str
+    image_model: str = "gpt-image-1"
+    image_size: str = "1024x1024"
+    alt_text: str
+    image_url: Optional[str] = None
+    error: Optional[str] = None
 
 
