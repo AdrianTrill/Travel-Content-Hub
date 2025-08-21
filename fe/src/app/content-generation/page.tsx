@@ -17,6 +17,13 @@ interface Content {
   readingTime: string;
   quality: string;
   tags: string[];
+  highlights?: string[];
+  neighborhoods?: string[];
+  recommended_spots?: string[];
+  priceRange?: string | null;
+  bestTimes?: string | null;
+  cautions?: string | null;
+  imageUrl?: string | null;
 }
 
 export default function ContentGeneration() {
@@ -49,6 +56,7 @@ export default function ContentGeneration() {
     return 'Blog Post';
   });
   const [loading, setLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState<{[key: string]: boolean}>({});
   const [suggestions, setSuggestions] = useState<Content[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('contentGen_suggestions');
@@ -160,6 +168,12 @@ export default function ContentGeneration() {
         readingTime: s.reading_time,
         quality: s.quality,
         tags: s.tags || [],
+        highlights: s.highlights || [],
+        neighborhoods: s.neighborhoods || [],
+        recommended_spots: s.recommended_spots || [],
+        priceRange: s.price_range ?? null,
+        bestTimes: s.best_times ?? null,
+        cautions: s.cautions ?? null,
       }));
       
       // Replace the specific card being edited with the first new suggestion
@@ -299,6 +313,12 @@ export default function ContentGeneration() {
                         readingTime: s.reading_time,
                         quality: s.quality,
                         tags: s.tags || [],
+                        highlights: s.highlights || [],
+                        neighborhoods: s.neighborhoods || [],
+                        recommended_spots: s.recommended_spots || [],
+                        priceRange: s.price_range ?? null,
+                        bestTimes: s.best_times ?? null,
+                        cautions: s.cautions ?? null,
                       }));
                       setSuggestions(mapped);
                     } catch (e) {
@@ -353,6 +373,21 @@ export default function ContentGeneration() {
                 {suggestions.map((s, idx) => (
                   <AnimatedContainer key={idx} direction="up" delay={0.2 + idx * 0.1}>
                 <div className="border border-gray-border rounded-lg p-3 md:p-4" style={{backgroundColor: '#F8F9F9'}}>
+                  {/* Generated Image */}
+                  {s.imageUrl && (
+                    <div className="mb-3">
+                      <img 
+                        src={s.imageUrl} 
+                        alt={`Generated image for ${s.title}`}
+                        className="w-full h-48 object-cover rounded-lg"
+                        onError={(e) => {
+                          // Hide image if it fails to load
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+                  
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-2">
                       <div className="flex items-center space-x-2 px-2 py-1 rounded-full" style={{backgroundColor: '#F7F1E9'}}>
@@ -384,6 +419,46 @@ export default function ContentGeneration() {
                   <p className="text-sm text-gray-dark mb-3 md:mb-4">
                     {s.content}
                   </p>
+                  {/* Rich details */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                    {s.highlights && s.highlights.length > 0 && (
+                      <div>
+                        <div className="text-xs font-semibold mb-1" style={{color:'#340B37'}}>Highlights</div>
+                        <ul className="list-disc pl-4 text-xs text-gray-700 space-y-1">
+                          {s.highlights.slice(0,5).map((h, i) => (<li key={i}>{h}</li>))}
+                        </ul>
+                    </div>
+                    )}
+                    {(s.neighborhoods && s.neighborhoods.length > 0) || (s.recommended_spots && s.recommended_spots.length > 0) ? (
+                      <div>
+                        {s.neighborhoods && s.neighborhoods.length > 0 && (
+                          <div className="mb-2">
+                            <div className="text-xs font-semibold mb-1" style={{color:'#340B37'}}>Neighborhoods</div>
+                            <div className="flex flex-wrap gap-1">
+                              {s.neighborhoods.slice(0,4).map((n, i) => (
+                                <span key={i} className="px-2 py-0.5 text-[10px] rounded-full bg-white border border-gray-200 text-gray-700">{n}</span>
+                              ))}
+                    </div>
+                  </div>
+                        )}
+                        {s.recommended_spots && s.recommended_spots.length > 0 && (
+                          <div>
+                            <div className="text-xs font-semibold mb-1" style={{color:'#340B37'}}>Spots</div>
+                            <ul className="list-disc pl-4 text-xs text-gray-700 space-y-1">
+                              {s.recommended_spots.slice(0,6).map((spot, i) => (<li key={i}>{spot}</li>))}
+                            </ul>
+                </div>
+                        )}
+                      </div>
+                    ) : null}
+                    </div>
+                  {(s.priceRange || s.bestTimes || s.cautions) && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {s.priceRange && (<span className="px-2 py-0.5 text-[10px] rounded bg-white border border-gray-200 text-gray-700">Price: {s.priceRange}</span>)}
+                      {s.bestTimes && (<span className="px-2 py-0.5 text-[10px] rounded bg-white border border-gray-200 text-gray-700">Best: {s.bestTimes}</span>)}
+                      {s.cautions && (<span className="px-2 py-0.5 text-[10px] rounded bg-white border border-gray-200 text-gray-700">Note: {s.cautions}</span>)}
+                    </div>
+                  )}
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div className="flex flex-wrap gap-2">
                       {s.tags.map((tag, tagIdx) => (
@@ -408,6 +483,67 @@ export default function ContentGeneration() {
                         </svg>
                         <span>Edit</span>
                       </button>
+                      <button 
+                        onClick={async () => {
+                          const contentKey = `${s.title}-${s.content}`;
+                          setImageLoading(prev => ({ ...prev, [contentKey]: true }));
+                          try {
+                            const res = await fetch(`${apiUrl}/generate-image`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                title: s.title,
+                                content: s.content,
+                                destination: destination,
+                                tags: s.tags,
+                                neighborhoods: s.neighborhoods || [],
+                                recommended_spots: s.recommended_spots || [],
+                                best_times: s.bestTimes
+                              })
+                            });
+                            if (res.ok) {
+                              const data = await res.json();
+                              if (data.image_url) {
+                                // Update the content card with the generated image
+                                setSuggestions(prev => prev.map(item => 
+                                  item.title === s.title && item.content === s.content
+                                    ? { ...item, imageUrl: data.image_url }
+                                    : item
+                                ));
+                              } else {
+                                alert('Image generation failed: ' + (data.error || 'Unknown error'));
+                              }
+                            } else {
+                              alert('Failed to generate image');
+                            }
+                          } catch (e) {
+                            console.error(e);
+                            alert('Error generating image');
+                          } finally {
+                            setImageLoading(prev => ({ ...prev, [contentKey]: false }));
+                          }
+                        }}
+                        disabled={imageLoading[`${s.title}-${s.content}`]}
+                        className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1 disabled:opacity-50" 
+                        style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
+                      >
+                        {imageLoading[`${s.title}-${s.content}`] ? (
+                          <>
+                            <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Generating...</span>
+                          </>
+                        ) : (
+                          <>
+                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                            <span>{s.imageUrl ? 'Regenerate' : 'Image'}</span>
+                          </>
+                        )}
+                      </button>
                           <button className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
                         <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12l2-2 4-4 2-2" />
@@ -422,7 +558,7 @@ export default function ContentGeneration() {
                       </button>
                     </div>
                   </div>
-                </div>
+                    </div>
                   </AnimatedContainer>
                 ))}
                 </div>
