@@ -49,3 +49,23 @@ class ImageGenerationResponse(BaseModel):
     error: Optional[str] = None
 
 
+class LocalImageGenerationRequest(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    destination: str = Field(..., description='City or place for the image')
+    tags: Optional[List[str]] = None
+    neighborhoods: Optional[List[str]] = None
+    recommended_spots: Optional[List[str]] = None
+    best_times: Optional[str] = None
+    width: Optional[int] = Field(default=1792, description='Image width in pixels')
+    height: Optional[int] = Field(default=1024, description='Image height in pixels')
+    mode: Optional[str] = Field(default="quality", description='Generation mode: "quality" or "turbo"')
+
+
+class LocalImageGenerationResponse(BaseModel):
+    image_prompt: str
+    alt_text: str
+    image_url: Optional[str] = None
+    error: Optional[str] = None
+
+

@@ -9,7 +9,12 @@ from fastapi import APIRouter, HTTPException
 from pydantic import ValidationError
 
 from app.core.config import settings
-from app.schemas.content import ContentRequest, ContentResponse, ContentSuggestion, ImageGenerationRequest, ImageGenerationResponse
+from app.core.image_generator import image_generator
+from app.schemas.content import (
+    ContentRequest, ContentResponse, ContentSuggestion, 
+    ImageGenerationRequest, ImageGenerationResponse,
+    LocalImageGenerationRequest, LocalImageGenerationResponse
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -194,106 +199,89 @@ async def generate_content(payload: ContentRequest) -> ContentResponse:
         logger.error(f"Unexpected error: {str(e)}")
         raise HTTPException(status_code=500, detail={"message": "Internal server error"})
 
-@router.post("/generate-image", response_model=ImageGenerationResponse)
-async def generate_image(payload: ImageGenerationRequest) -> ImageGenerationResponse:
-    """Generate a photorealistic travel image based on content card."""
+@router.post("/generate-image-local", response_model=LocalImageGenerationResponse)
+async def generate_image_local(payload: LocalImageGenerationRequest) -> LocalImageGenerationResponse:
+    """Generate a photorealistic travel image using local Stable Diffusion XL."""
     try:
-        # 1. Determine PLACE (main subject) by priority
-        place = None
-        if payload.title and any(word.lower() in payload.title.lower() for word in ['market', 'street', 'plaza', 'square', 'park', 'museum', 'cathedral', 'bridge']):
-            # Extract place from title
-            title_words = payload.title.split()
-            for word in title_words:
-                if word.lower() in ['market', 'street', 'plaza', 'square', 'park', 'museum', 'cathedral', 'bridge']:
-                    place = word
-                    break
-        elif payload.recommended_spots:
-            place = payload.recommended_spots[0]
-        elif payload.neighborhoods:
-            place = payload.neighborhoods[0]
-        else:
-            place = payload.destination
+        logger.info(f"Local image generation request: {payload.destination}, mode: {payload.mode}")
         
-        # Append destination if not already included
-        if payload.destination.lower() not in place.lower():
-            place = f"{place} in {payload.destination}"
+        # Generate image using local SDXL pipeline
+        result = image_generator.generate_image(payload)
         
-        # 2. Determine time/season
-        time_of_day = "daytime"
-        if payload.best_times:
-            best_times_lower = payload.best_times.lower()
-            if any(word in best_times_lower for word in ['morning', 'early', 'dawn', 'sunrise']):
-                time_of_day = "morning"
-            elif any(word in best_times_lower for word in ['sunset', 'evening', 'golden hour', 'dusk']):
-                time_of_day = "sunset"
-            elif any(word in best_times_lower for word in ['night', 'evening', 'late']):
-                time_of_day = "night"
-            elif any(word in best_times_lower for word in ['winter', 'spring', 'summer', 'autumn', 'fall']):
-                time_of_day = best_times_lower.split()[0]  # Extract season
-        
-        # 3. Extract concrete visual elements (up to 4)
-        content_words = payload.content.lower().split()
-        concrete_elements = []
-        visual_keywords = ['market', 'stalls', 'vendor', 'awning', 'bread', 'cheese', 'cobblestone', 'street', 'river', 'harbor', 'canal', 'beach', 'coast', 'cliffs', 'bay', 'bridge', 'park', 'museum', 'cathedral', 'neon', 'food', 'people', 'buildings', 'trees', 'flowers', 'fountain', 'statue']
-        
-        for word in content_words:
-            if word in visual_keywords and len(concrete_elements) < 4:
-                concrete_elements.append(word)
-        
-        if not concrete_elements:
-            concrete_elements = ['buildings', 'people', 'street']
-        
-        # 4. Determine perspective & composition
-        if any(word in payload.content.lower() for word in ['market', 'street', 'food', 'neon', 'vendor']):
-            perspective = "street-level, 24–35mm wide-angle; people mid-ground, leading lines"
-        elif any(word in payload.content.lower() for word in ['river', 'harbor', 'canal', 'beach', 'coast', 'cliffs', 'bay']):
-            perspective = "elevated vantage, 35–50mm; foreground anchor, sweeping background"
-        else:
-            perspective = "eye-level, 35mm; center-weighted subject"
-        
-        # 5. Determine lighting & palette
-        if time_of_day in ['sunset', 'morning']:
-            lighting = "warm cinematic side-light, soft shadows; natural colors"
-        elif time_of_day == 'night':
-            lighting = "ambient city light; natural colors"
-        else:
-            lighting = "soft daylight; natural balanced colors"
-        
-        # 6. Build the image prompt
-        image_prompt = f"{place}; {time_of_day}; {perspective}; {lighting}; photorealistic, sharp focus, high detail. Must include: {', '.join(concrete_elements[:4])}. AVOID: no text overlays, no watermarks, no logos, no billboards, no heavy HDR, no anime, no illustration, no fisheye, avoid motion blur."
-        
-        # 7. Generate alt text
-        alt_text = f"Photorealistic image of {place} during {time_of_day}, showing {', '.join(concrete_elements[:3])}"
-        
-        # 8. Call OpenAI Images API
-        try:
-            response = openai.images.generate(
-                prompt=image_prompt,
-                n=1,
-                size="1024x1024",
-                model="dall-e-3"
-            )
-            image_url = response.data[0].url
-        except Exception as img_error:
-            logger.error(f"Image generation failed: {str(img_error)}")
-            return ImageGenerationResponse(
-                image_prompt=image_prompt,
-                alt_text=alt_text,
+        if result.get('error'):
+            logger.error(f"Local image generation failed: {result['error']}")
+            return LocalImageGenerationResponse(
+                image_prompt=result.get('image_prompt', ''),
+                alt_text=result.get('alt_text', ''),
                 image_url=None,
-                error="Image generation failed"
+                error=result['error']
             )
         
-        return ImageGenerationResponse(
-            image_prompt=image_prompt,
-            alt_text=alt_text,
-            image_url=image_url
+        logger.info("Local image generation completed successfully")
+        return LocalImageGenerationResponse(
+            image_prompt=result['image_prompt'],
+            alt_text=result['alt_text'],
+            image_url=result['image_url'],
+            error=None
         )
         
     except ValidationError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail={"message": "Invalid request data"})
     except Exception as e:
-        logger.error(f"Unexpected error in image generation: {str(e)}")
+        logger.error(f"Unexpected error in local image generation: {str(e)}")
+        raise HTTPException(status_code=500, detail={"message": "Internal server error"})
+
+# Legacy endpoint - now redirects to local generation
+@router.post("/generate-image", response_model=ImageGenerationResponse)
+async def generate_image(payload: ImageGenerationRequest) -> ImageGenerationResponse:
+    """Legacy endpoint - now uses local SDXL generation instead of OpenAI."""
+    try:
+        logger.info("Legacy OpenAI image endpoint called - redirecting to local generation")
+        
+        # Convert legacy request to local format
+        local_payload = LocalImageGenerationRequest(
+            title=payload.title,
+            content=payload.content,
+            destination=payload.destination,
+            tags=payload.tags,
+            neighborhoods=payload.neighborhoods,
+            recommended_spots=payload.recommended_spots,
+            best_times=payload.best_times,
+            width=1024,  # Legacy default
+            height=1024,  # Legacy default
+            mode="quality"  # Default to quality mode
+        )
+        
+        # Generate image using local SDXL pipeline
+        result = image_generator.generate_image(local_payload)
+        
+        if result.get('error'):
+            logger.error(f"Local image generation failed: {result['error']}")
+            return ImageGenerationResponse(
+                image_prompt=result.get('image_prompt', ''),
+                image_model="sdxl-local",
+                image_size="1024x1024",
+                alt_text=result.get('alt_text', ''),
+                image_url=None,
+                error=result['error']
+            )
+        
+        logger.info("Local image generation completed successfully (via legacy endpoint)")
+        return ImageGenerationResponse(
+            image_prompt=result['image_prompt'],
+            image_model="sdxl-local",
+            image_size="1024x1024",
+            alt_text=result['alt_text'],
+            image_url=result['image_url'],
+            error=None
+        )
+        
+    except ValidationError as e:
+        logger.error(f"Validation error: {str(e)}")
+        raise HTTPException(status_code=400, detail={"message": "Invalid request data"})
+    except Exception as e:
+        logger.error(f"Unexpected error in legacy image generation: {str(e)}")
         raise HTTPException(status_code=500, detail={"message": "Internal server error"})
 
 
