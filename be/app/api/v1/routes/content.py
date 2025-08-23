@@ -4,18 +4,19 @@ import json
 import logging
 from typing import List
 
-import openai
+from openai import OpenAI
+from openai import NotFoundError, RateLimitError
 from fastapi import APIRouter, HTTPException
 from pydantic import ValidationError
 
 from app.core.config import settings
-from app.schemas.content import ContentRequest, ContentResponse, ContentSuggestion, ImageGenerationRequest, ImageGenerationResponse
+from app.schemas.content import ContentRequest, ContentResponse, ContentSuggestion, ImageGenerationRequest, ImageGenerationResponse, PlaceSearchRequest, PlaceSearchResponse, Place
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Configure OpenAI client
-openai.api_key = settings.openai_api_key
+client = OpenAI(api_key=settings.openai_api_key)
 
 @router.post("/generate-content", response_model=ContentResponse)
 async def generate_content(payload: ContentRequest) -> ContentResponse:
@@ -102,7 +103,7 @@ async def generate_content(payload: ContentRequest) -> ContentResponse:
             try:
                 logger.info(f"Attempting to use model: {model}")
                 
-                response = openai.chat.completions.create(
+                response = client.chat.completions.create(
                     model=model,
                     messages=[
                         {"role": "system", "content": system_instructions},
@@ -165,11 +166,11 @@ async def generate_content(payload: ContentRequest) -> ContentResponse:
                     last_error = json_error
                     continue
                     
-            except openai.NotFoundError as e:
+            except NotFoundError as e:
                 logger.warning(f"Model {model} not found: {e}")
                 last_error = e
                 continue
-            except openai.RateLimitError as e:
+            except RateLimitError as e:
                 logger.error(f"Rate limit exceeded: {e}")
                 raise HTTPException(
                     status_code=429, 
@@ -192,6 +193,139 @@ async def generate_content(payload: ContentRequest) -> ContentResponse:
         raise HTTPException(status_code=400, detail={"message": "Invalid request data"})
     except Exception as e:
         logger.error(f"Unexpected error: {str(e)}")
+        raise HTTPException(status_code=500, detail={"message": "Internal server error"})
+
+@router.post("/search-places", response_model=PlaceSearchResponse)
+async def search_places(payload: PlaceSearchRequest) -> PlaceSearchResponse:
+    """Search for places using OpenAI to find relevant locations based on user query."""
+    try:
+        logger.info(f"Search request received for query: '{payload.query}'")
+        
+        # Define candidate models to try in order
+        candidate_models = [
+            settings.openai_model,
+            "gpt-4o-mini",
+            "gpt-4o",
+            "gpt-4-1106-preview"
+        ]
+        
+        system_instructions = (
+            'You are a travel expert and geographer. Your task is to find ALL relevant places based on user search queries.\n\n'
+            'SEARCH RULES:\n'
+            '- Interpret the user query broadly and find ALL relevant places\n'
+            '- Include cities, regions, landmarks, neighborhoods, and points of interest\n'
+            '- For regions like "Transilvania", include major cities, smaller towns, castles, monasteries, natural attractions, museums, and cultural sites\n'
+            '- For specific queries like "Paris cafes", include relevant neighborhoods, districts, and areas\n'
+            '- Provide comprehensive geographical coverage\n'
+            '- Include both well-known and lesser-known places\n'
+            '- For regions, cover different areas and types of attractions\n'
+            '- IMPORTANT: Only return places that are DIRECTLY related to the search query\n'
+            '- Do NOT return generic or unrelated places\n\n'
+            'OUTPUT FORMAT (JSON only):\n'
+            '{\n'
+            '  "places": [\n'
+            '    {\n'
+            '      "name": "Place Name",\n'
+            '      "type": "city|region|landmark|neighborhood|town|village|monastery|castle|museum|park|natural_site",\n'
+            '      "country": "Country Name",\n'
+            '      "description": "Detailed description (2-3 sentences) with key features, history, and what makes it special",\n'
+            '      "highlights": ["Highlight 1", "Highlight 2", "Highlight 3", "Highlight 4", "Highlight 5"],\n'
+            '      "categories": ["category1", "category2", "category3"]\n'
+            '    }\n'
+            '  ]\n'
+            '}\n\n'
+            'CATEGORIES: culture, nature, food, history, architecture, entertainment, shopping, outdoor, religious, modern, traditional, adventure, relaxation, education, nightlife\n'
+            'HIGHLIGHTS: 5-7 specific attractions, landmarks, activities, or unique features\n'
+            'DESCRIPTION: Detailed but concise, mentioning key features, historical significance, and unique characteristics\n'
+            'Return 15-25 relevant places based on the search query to provide comprehensive coverage.'
+        )
+
+        user_prompt = f"Search query: '{payload.query}'\nLanguage: {payload.language}\n\nFind ONLY places that are DIRECTLY related to '{payload.query}'. Do not return generic or unrelated places. Focus on locations, attractions, and points of interest that are specifically associated with this search term."
+
+        logger.info(f"Using system instructions and user prompt for search")
+        
+        # Try each model until one works
+        last_error = None
+        for model in candidate_models:
+            try:
+                logger.info(f"Attempting search with model: {model}")
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_instructions},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0.3,
+                    max_tokens=3000
+                )
+                
+                content = response.choices[0].message.content.strip()
+                logger.info(f"Received response from model {model}, content length: {len(content)}")
+                
+                # Try to parse the JSON response
+                try:
+                    # Remove any markdown formatting if present
+                    if content.startswith('```json'):
+                        content = content.split('```json')[1]
+                    if content.endswith('```'):
+                        content = content.rsplit('```', 1)[0]
+                    
+                    data = json.loads(content.strip())
+                    logger.info(f"Successfully parsed JSON response")
+                    
+                    if 'places' in data and isinstance(data['places'], list):
+                        places = []
+                        for place_data in data['places']:
+                            try:
+                                place = Place(
+                                    name=place_data.get('name', ''),
+                                    type=place_data.get('type', ''),
+                                    country=place_data.get('country', ''),
+                                    description=place_data.get('description', ''),
+                                    highlights=place_data.get('highlights', []),
+                                    categories=place_data.get('categories', [])
+                                )
+                                places.append(place)
+                            except Exception as e:
+                                logger.warning(f"Failed to parse place data: {e}")
+                                continue
+                        
+                        logger.info(f"Successfully created {len(places)} place objects")
+                        return PlaceSearchResponse(
+                            places=places,
+                            total_results=len(places),
+                            search_query=payload.query
+                        )
+                    
+                except json.JSONDecodeError as json_error:
+                    logger.warning(f"JSON decode error with model {model}: {json_error}")
+                    last_error = json_error
+                    continue
+                    
+            except NotFoundError as e:
+                logger.warning(f"Model {model} not found: {e}")
+                last_error = e
+                continue
+            except RateLimitError as e:
+                logger.error(f"Rate limit exceeded: {e}")
+                raise HTTPException(
+                    status_code=429, 
+                    detail={"message": "OpenAI API rate limit exceeded. Please check your billing and quota."}
+                )
+            except Exception as e:
+                logger.error(f"Error with model {model}: {e}")
+                last_error = e
+                continue
+        
+        # If we get here, all models failed
+        logger.error(f"All models failed. Last error: {last_error}")
+        raise HTTPException(status_code=500, detail={"message": "Failed to search places"})
+        
+    except ValidationError as e:
+        logger.error(f"Validation error: {str(e)}")
+        raise HTTPException(status_code=400, detail={"message": "Invalid request data"})
+    except Exception as e:
+        logger.error(f"Unexpected error in place search: {str(e)}")
         raise HTTPException(status_code=500, detail={"message": "Internal server error"})
 
 @router.post("/generate-image", response_model=ImageGenerationResponse)
@@ -267,7 +401,7 @@ async def generate_image(payload: ImageGenerationRequest) -> ImageGenerationResp
         
         # 8. Call OpenAI Images API
         try:
-            response = openai.images.generate(
+            response = client.images.generate(
                 prompt=image_prompt,
                 n=1,
                 size="1024x1024",

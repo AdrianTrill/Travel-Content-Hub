@@ -49,3 +49,23 @@ class ImageGenerationResponse(BaseModel):
     error: Optional[str] = None
 
 
+class PlaceSearchRequest(BaseModel):
+    query: str = Field(..., description='Search query for places (e.g., "Transilvania", "Paris cafes")')
+    language: str = Field(default='en', description='Language code for the output')
+
+
+class Place(BaseModel):
+    name: str = Field(..., description='Name of the place or location')
+    type: str = Field(..., description='Type of place (e.g., city, region, landmark, neighborhood)')
+    country: str = Field(..., description='Country where the place is located')
+    description: str = Field(..., description='Brief description of the place')
+    highlights: List[str] = Field(default_factory=list, description='Key highlights or attractions')
+    categories: List[str] = Field(default_factory=list, description='Categories like culture, nature, food, etc.')
+
+
+class PlaceSearchResponse(BaseModel):
+    places: List[Place]
+    total_results: int
+    search_query: str
+
+
