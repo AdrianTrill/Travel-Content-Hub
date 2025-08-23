@@ -53,3 +53,12 @@ export const DESTINATIONS: string[] = [
   'Prague',
   'San Francisco',
 ];
+
+export interface Place {
+  name: string;
+  type: string;
+  country: string;
+  description: string;
+  highlights: string[];
+  categories: string[];
+}
