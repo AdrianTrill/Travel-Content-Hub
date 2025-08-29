@@ -69,3 +69,27 @@ class PlaceSearchResponse(BaseModel):
     search_query: str
 
 
+class CustomPromptRequest(BaseModel):
+    prompt: str = Field(..., description='Custom prompt for AI content generation')
+    destination: str = Field(..., description='Destination for the content')
+    content_type: str = Field(default='Blog Post', description='Type of content to generate')
+    language: str = Field(default='en', description='Language for the output')
+    existing_content: Optional[str] = Field(default=None, description='Existing content to improve or modify')
+
+
+class CustomPromptResponse(BaseModel):
+    title: str
+    content: str
+    type: str
+    reading_time: str
+    quality: str
+    tags: List[str]
+    highlights: List[str]
+    neighborhoods: List[str]
+    recommended_spots: List[str]
+    price_range: Optional[str]
+    best_times: Optional[str]
+    cautions: Optional[str]
+    generated_from_prompt: str
+
+

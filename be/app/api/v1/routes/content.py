@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import ValidationError
 
 from app.core.config import settings
-from app.schemas.content import ContentRequest, ContentResponse, ContentSuggestion, ImageGenerationRequest, ImageGenerationResponse, PlaceSearchRequest, PlaceSearchResponse, Place
+from app.schemas.content import ContentRequest, ContentResponse, ContentSuggestion, ImageGenerationRequest, ImageGenerationResponse, PlaceSearchRequest, PlaceSearchResponse, Place, CustomPromptRequest, CustomPromptResponse
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -46,27 +46,33 @@ async def generate_content(payload: ContentRequest) -> ContentResponse:
             '- Include seasonal/temporal cues ONLY if present or safely inferable (e.g., "late summer" → summer).\n'
             '- Numbers only if present in inputs; otherwise use qualitative ranges (e.g., "£", "moderate").\n'
             '- Ban clichés & filler: hidden gem, bustling, vibrant, picturesque, must-see, must-try, rich tapestry, iconic, enchanting, unforgettable, culinary journey, delectable, mouthwatering, gem.\n\n'
+            'PRICE RULES:\n'
+            '- For price_range: Use descriptive terms like "Free", "Budget-friendly", "Moderate", "Premium", "Luxury" or specific ranges like "£5-15", "€20-50"\n'
+            '- NEVER use just "$", "$$", "$$$" symbols\n'
+            '- If price is unknown, set price_range to null\n'
+            '- Be specific about what the price covers (entry fee, meal, activity, etc.)\n\n'
             'OUTPUT (JSON only; no markdown, no extra keys):\n'
             '{\n'
             '  "suggestions": [{\n'
             '    "title": str,                  // concrete + specific\n'
             '    "content": str,                // 35–60 words IG, 60–100 FB, 80–130 Blog\n'
-            '    "type": str,\n'
+            '    "type": str,                   // content type\n'
             '    "reading_time": str,           // e.g., "45 sec" or "3 min"\n'
             '    "quality": "High" | "Medium",\n'
             '    "tags": [str],\n'
             '    "highlights": [str],           // 3–5 terse bullets; concrete (things to do/eat/see)\n'
             '    "neighborhoods": [str],\n'
             '    "recommended_spots": [str],    // venues/landmarks actually referenced in content\n'
-            '    "price_range": str | null,     // $, ££, etc. or null if unknown\n'
-            '    "best_times": str | null,      // only if in inputs or safely inferred (e.g., morning)\n'
+            '    "price_range": str | null,     // descriptive price info or null if unknown\n'
+            '    "best_times": str | null,      // only if in inputs or safely inferred\n'
             '    "cautions": str | null         // e.g., crowds, queues, cashless\n'
             '  }]\n'
             '}\n\n'
             'VALIDATION (before output)\n'
             '- The PLACE referenced in content MUST appear in recommended_spots or neighborhoods.\n'
             '- Each highlight must be a tangible action/item (not generic praise).\n'
-            '- Remove banned words. If any remain, rewrite once then output.'
+            '- Remove banned words. If any remain, rewrite once then output.\n'
+            '- Price_range must be descriptive, not just symbols.'
         )
 
         user_prompt = (
@@ -221,6 +227,11 @@ async def search_places(payload: PlaceSearchRequest) -> PlaceSearchResponse:
             '- For regions, cover different areas and types of attractions\n'
             '- IMPORTANT: Only return places that are DIRECTLY related to the search query\n'
             '- Do NOT return generic or unrelated places\n\n'
+            'PRICE RULES:\n'
+            '- For price_range: Use descriptive terms like "Free", "Budget-friendly", "Moderate", "Premium", "Luxury" or specific ranges like "£5-15", "€20-50"\n'
+            '- NEVER use just "$", "$$", "$$$" symbols\n'
+            '- If price is unknown, set price_range to null\n'
+            '- Be specific about what the price covers (entry fee, meal, activity, etc.)\n\n'
             'OUTPUT FORMAT (JSON only):\n'
             '{\n'
             '  "places": [\n'
@@ -428,6 +439,143 @@ async def generate_image(payload: ImageGenerationRequest) -> ImageGenerationResp
         raise HTTPException(status_code=400, detail={"message": "Invalid request data"})
     except Exception as e:
         logger.error(f"Unexpected error in image generation: {str(e)}")
+        raise HTTPException(status_code=500, detail={"message": "Internal server error"})
+
+@router.post("/generate-custom-content", response_model=CustomPromptResponse)
+async def generate_custom_content(payload: CustomPromptRequest) -> CustomPromptResponse:
+    """Generate AI-powered travel content based on a custom user prompt."""
+    try:
+        logger.info(f"Custom prompt request received for destination: '{payload.destination}'")
+        
+        # Define candidate models to try in order
+        candidate_models = [
+            settings.openai_model,
+            "gpt-4o-mini",
+            "gpt-4o",
+            "gpt-4-1106-preview"
+        ]
+        
+        system_instructions = (
+            'You are a senior travel editor and content creator. Your task is to generate high-quality travel content based on the user\'s custom prompt.\n\n'
+            'CONTENT RULES:\n'
+            '- Follow the user\'s custom prompt EXACTLY as specified\n'
+            '- Generate content that matches the requested content type and style\n'
+            '- Ensure all content is accurate and relevant to the destination\n'
+            '- Include practical information, tips, and recommendations\n'
+            '- Make the content engaging, informative, and useful for travelers\n'
+            '- If existing content is provided, improve or modify it according to the prompt\n\n'
+            'PRICE RULES:\n'
+            '- For price_range: Use descriptive terms like "Free", "Budget-friendly", "Moderate", "Premium", "Luxury" or specific ranges like "£5-15", "€20-50"\n'
+            '- NEVER use just "$", "$$", "$$$" symbols\n'
+            '- If price is unknown, set price_range to null\n'
+            '- Be specific about what the price covers (entry fee, meal, activity, etc.)\n\n'
+            'OUTPUT FORMAT (JSON only):\n'
+            '{\n'
+            '  "title": "Engaging title based on the prompt",\n'
+            '  "content": "Content generated according to the custom prompt",\n'
+            '  "type": "Content type (Blog Post, Instagram Post, etc.)",\n'
+            '  "reading_time": "Estimated reading time (e.g., 3 min)",\n'
+            '  "quality": "High",\n'
+            '  "tags": ["relevant", "tags", "for", "content"],\n'
+            '  "highlights": ["Key highlight 1", "Key highlight 2", "Key highlight 3"],\n'
+            '  "neighborhoods": ["Relevant neighborhoods or areas"],\n'
+            '  "recommended_spots": ["Specific places, venues, or attractions"],\n'
+            '  "price_range": "Descriptive price info or null",\n'
+            '  "best_times": "Best times to visit if relevant",\n'
+            '  "cautions": "Important notes or warnings if relevant"\n'
+            '}\n\n'
+            'IMPORTANT: The content must directly address and fulfill the user\'s custom prompt requirements. Price_range must be descriptive, not just symbols.'
+        )
+
+        user_prompt = f"""Custom Prompt: {payload.prompt}
+
+Destination: {payload.destination}
+Content Type: {payload.content_type}
+Language: {payload.language}
+{f"Existing Content to Improve: {payload.existing_content}" if payload.existing_content else ""}
+
+Please generate content that specifically addresses the custom prompt above. The content should be tailored to the destination and content type requested."""
+
+        logger.info(f"Using custom prompt for content generation")
+        
+        # Try each model until one works
+        last_error = None
+        for model in candidate_models:
+            try:
+                logger.info(f"Attempting custom content generation with model: {model}")
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_instructions},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0.7,
+                    max_tokens=2000
+                )
+                
+                content = response.choices[0].message.content.strip()
+                logger.info(f"Received custom content response from model {model}, content length: {len(content)}")
+                
+                # Try to parse the JSON response
+                try:
+                    # Remove any markdown formatting if present
+                    if content.startswith('```json'):
+                        content = content.split('```json')[1]
+                    if content.endswith('```'):
+                        content = content.rsplit('```', 1)[0]
+                    
+                    data = json.loads(content.strip())
+                    logger.info(f"Successfully parsed custom content JSON response")
+                    
+                    # Create the response object
+                    custom_response = CustomPromptResponse(
+                        title=data.get('title', 'Custom Generated Title'),
+                        content=data.get('content', 'Custom generated content'),
+                        type=data.get('type', payload.content_type),
+                        reading_time=data.get('reading_time', '3 min'),
+                        quality=data.get('quality', 'High'),
+                        tags=data.get('tags', []),
+                        highlights=data.get('highlights', []),
+                        neighborhoods=data.get('neighborhoods', []),
+                        recommended_spots=data.get('recommended_spots', []),
+                        price_range=data.get('price_range'),
+                        best_times=data.get('best_times'),
+                        cautions=data.get('cautions'),
+                        generated_from_prompt=payload.prompt
+                    )
+                    
+                    logger.info(f"Successfully created custom content response")
+                    return custom_response
+                    
+                except json.JSONDecodeError as json_error:
+                    logger.warning(f"JSON decode error with model {model}: {json_error}")
+                    last_error = json_error
+                    continue
+                    
+            except NotFoundError as e:
+                logger.warning(f"Model {model} not found: {e}")
+                last_error = e
+                continue
+            except RateLimitError as e:
+                logger.error(f"Rate limit exceeded: {e}")
+                raise HTTPException(
+                    status_code=429, 
+                    detail={"message": "OpenAI API rate limit exceeded. Please check your billing and quota."}
+                )
+            except Exception as e:
+                logger.error(f"Error with model {model}: {e}")
+                last_error = e
+                continue
+        
+        # If we get here, all models failed
+        logger.error(f"All models failed for custom content generation. Last error: {last_error}")
+        raise HTTPException(status_code=500, detail={"message": "Failed to generate custom content"})
+        
+    except ValidationError as e:
+        logger.error(f"Validation error in custom content generation: {str(e)}")
+        raise HTTPException(status_code=400, detail={"message": "Invalid request data"})
+    except Exception as e:
+        logger.error(f"Unexpected error in custom content generation: {str(e)}")
         raise HTTPException(status_code=500, detail={"message": "Internal server error"})
 
 

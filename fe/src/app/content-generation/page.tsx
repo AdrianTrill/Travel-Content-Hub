@@ -20,8 +20,8 @@ interface Content {
   highlights?: string[];
   neighborhoods?: string[];
   recommended_spots?: string[];
-  priceRange?: string | null;
-  bestTimes?: string | null;
+  price_range?: string | null;
+  best_times?: string | null;
   cautions?: string | null;
   imageUrl?: string | null;
 }
@@ -107,13 +107,21 @@ export default function ContentGeneration() {
   }, [suggestions]);
 
   const handleEdit = (content: Content) => {
+    console.log('handleEdit called with:', content);
     setSelectedContent({
       title: content.title,
       content: content.content,
       type: content.type,
       readingTime: content.readingTime,
       quality: content.quality,
-      tags: content.tags
+      tags: content.tags || [],
+      highlights: content.highlights || [],
+      neighborhoods: content.neighborhoods || [],
+      recommended_spots: content.recommended_spots || [],
+      price_range: content.price_range || null,
+      best_times: content.best_times || null,
+      cautions: content.cautions || null,
+      imageUrl: content.imageUrl || null,
     });
     setIsEditorOpen(true);
   };
@@ -123,6 +131,7 @@ export default function ContentGeneration() {
   };
 
   const handleContentUpdate = (updatedContent: Content) => {
+    console.log('handleContentUpdate called with:', updatedContent);
     setSuggestions(prev => prev.map(s => 
       s.title === selectedContent?.title && s.content === selectedContent?.content 
         ? updatedContent 
@@ -171,8 +180,8 @@ export default function ContentGeneration() {
         highlights: s.highlights || [],
         neighborhoods: s.neighborhoods || [],
         recommended_spots: s.recommended_spots || [],
-        priceRange: s.price_range ?? null,
-        bestTimes: s.best_times ?? null,
+        price_range: s.price_range ?? null,
+        best_times: s.best_times ?? null,
         cautions: s.cautions ?? null,
       }));
       
@@ -300,8 +309,8 @@ export default function ContentGeneration() {
                         highlights: s.highlights || [],
                         neighborhoods: s.neighborhoods || [],
                         recommended_spots: s.recommended_spots || [],
-                        priceRange: s.price_range ?? null,
-                        bestTimes: s.best_times ?? null,
+                        price_range: s.price_range ?? null,
+                        best_times: s.best_times ?? null,
                         cautions: s.cautions ?? null,
                       }));
                       setSuggestions(mapped);
@@ -408,10 +417,12 @@ export default function ContentGeneration() {
                     {s.highlights && s.highlights.length > 0 && (
                       <div>
                         <div className="text-xs font-semibold mb-1" style={{color:'#340B37'}}>Highlights</div>
-                        <ul className="list-disc pl-4 text-xs text-gray-700 space-y-1">
-                          {s.highlights.slice(0,5).map((h, i) => (<li key={i}>{h}</li>))}
-                        </ul>
-                    </div>
+                        <div className="flex flex-wrap gap-1">
+                          {s.highlights.slice(0,5).map((h, i) => (
+                            <span key={i} className="px-2 py-0.5 text-[10px] rounded-full bg-white border border-gray-200 text-gray-700">{h}</span>
+                          ))}
+                        </div>
+                      </div>
                     )}
                     {(s.neighborhoods && s.neighborhoods.length > 0) || (s.recommended_spots && s.recommended_spots.length > 0) ? (
                       <div>
@@ -422,34 +433,36 @@ export default function ContentGeneration() {
                               {s.neighborhoods.slice(0,4).map((n, i) => (
                                 <span key={i} className="px-2 py-0.5 text-[10px] rounded-full bg-white border border-gray-200 text-gray-700">{n}</span>
                               ))}
-                    </div>
-                  </div>
+                            </div>
+                          </div>
                         )}
                         {s.recommended_spots && s.recommended_spots.length > 0 && (
                           <div>
                             <div className="text-xs font-semibold mb-1" style={{color:'#340B37'}}>Spots</div>
-                            <ul className="list-disc pl-4 text-xs text-gray-700 space-y-1">
-                              {s.recommended_spots.slice(0,6).map((spot, i) => (<li key={i}>{spot}</li>))}
-                            </ul>
-                </div>
+                            <div className="flex flex-wrap gap-1">
+                              {s.recommended_spots.slice(0,6).map((spot, i) => (
+                                <span key={i} className="px-2 py-0.5 text-[10px] rounded-full bg-white border border-gray-200 text-gray-700">{spot}</span>
+                              ))}
+                            </div>
+                          </div>
                         )}
                       </div>
                     ) : null}
-                    </div>
-                  {(s.priceRange || s.bestTimes || s.cautions) && (
+                  </div>
+                  {(s.price_range || s.best_times || s.cautions) && (
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {s.priceRange && (<span className="px-2 py-0.5 text-[10px] rounded bg-white border border-gray-200 text-gray-700">Price: {s.priceRange}</span>)}
-                      {s.bestTimes && (<span className="px-2 py-0.5 text-[10px] rounded bg-white border border-gray-200 text-gray-700">Best: {s.bestTimes}</span>)}
+                      {s.price_range && (<span className="px-2 py-0.5 text-[10px] rounded bg-white border border-gray-200 text-gray-700">Price: {s.price_range}</span>)}
+                      {s.best_times && (<span className="px-2 py-0.5 text-[10px] rounded bg-white border border-gray-200 text-gray-700">Best: {s.best_times}</span>)}
                       {s.cautions && (<span className="px-2 py-0.5 text-[10px] rounded bg-white border border-gray-200 text-gray-700">Note: {s.cautions}</span>)}
                     </div>
                   )}
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <div className="flex items-end justify-between gap-2 mt-2">
                     <div className="flex flex-wrap gap-2">
                       {s.tags.map((tag, tagIdx) => (
                         <span key={tagIdx} className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: 'black'}}>{tag}</span>
                       ))}
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 justify-end self-end">
                       <button 
                         onClick={() => handleEdit({
                           title: s.title,
@@ -458,11 +471,18 @@ export default function ContentGeneration() {
                           readingTime: s.readingTime,
                           quality: s.quality,
                           tags: s.tags,
+                          highlights: s.highlights || [],
+                          neighborhoods: s.neighborhoods || [],
+                          recommended_spots: s.recommended_spots || [],
+                          price_range: s.price_range || null,
+                          best_times: s.best_times || null,
+                          cautions: s.cautions || null,
+                          imageUrl: s.imageUrl || null,
                         })}
-                            className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
+                            className="px-1.5 py-0.5 border rounded text-xs hover:bg-gray-50 flex items-center space-x-1"
                         style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
                       >
-                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                         <span>Edit</span>
@@ -482,7 +502,7 @@ export default function ContentGeneration() {
                                 tags: s.tags,
                                 neighborhoods: s.neighborhoods || [],
                                 recommended_spots: s.recommended_spots || [],
-                                best_times: s.bestTimes
+                                best_times: s.best_times
                               })
                             });
                             if (res.ok) {
@@ -508,7 +528,7 @@ export default function ContentGeneration() {
                           }
                         }}
                         disabled={imageLoading[`${s.title}-${s.content}`]}
-                        className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1 disabled:opacity-50" 
+                        className="px-1.5 py-0.5 border rounded text-xs hover:bg-gray-50 flex items-center space-x-1 disabled:opacity-50"
                         style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
                       >
                         {imageLoading[`${s.title}-${s.content}`] ? (
@@ -521,21 +541,21 @@ export default function ContentGeneration() {
                           </>
                         ) : (
                           <>
-                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                            <span>{s.imageUrl ? 'Regenerate' : 'Image'}</span>
+                            <span>{s.imageUrl ? 'Regenerate' : 'Generate Image'}</span>
                           </>
                         )}
                       </button>
-                          <button className="px-3 py-1 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
-                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
+                          <button className="px-1.5 py-0.5 border rounded text-xs hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12l2-2 4-4 2-2" />
                         </svg>
                         <span>Copy</span>
                       </button>
-                      <button className="px-3 py-1 bg-primary text-white rounded text-sm hover:bg-primary-dark flex items-center space-x-1">
-                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <button className="px-1.5 py-0.5 bg-primary text-white rounded text-xs hover:bg-primary-dark flex items-center space-x-1">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
                         <span>Publish</span>
@@ -558,6 +578,7 @@ export default function ContentGeneration() {
         isOpen={isEditorOpen}
         onClose={handleCloseEditor}
         content={selectedContent}
+        destination={destination}
         onUpdate={handleContentUpdate}
         onRegenerate={handleRegenerate}
         loading={loading}
