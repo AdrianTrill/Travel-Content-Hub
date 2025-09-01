@@ -93,3 +93,55 @@ class CustomPromptResponse(BaseModel):
     generated_from_prompt: str
 
 
+
+# Publish models
+class PublishContentRequest(BaseModel):
+    title: str
+    content: str
+    type: str
+    reading_time: str
+    quality: str
+    tags: List[str] = Field(default_factory=list)
+    highlights: List[str] = Field(default_factory=list)
+    neighborhoods: List[str] = Field(default_factory=list)
+    recommended_spots: List[str] = Field(default_factory=list)
+    price_range: Optional[str] = None
+    best_times: Optional[str] = None
+    cautions: Optional[str] = None
+    destination: Optional[str] = None
+    image_url: Optional[str] = None
+
+
+class PublishedContentItem(BaseModel):
+    id: str
+    title: str
+    content: str
+    type: str
+    reading_time: str
+    quality: str
+    tags: List[str] = Field(default_factory=list)
+    highlights: List[str] = Field(default_factory=list)
+    neighborhoods: List[str] = Field(default_factory=list)
+    recommended_spots: List[str] = Field(default_factory=list)
+    price_range: Optional[str] = None
+    best_times: Optional[str] = None
+    cautions: Optional[str] = None
+    destination: Optional[str] = None
+    image_url: Optional[str] = None
+    status: str = Field(default="Published")
+    location: Optional[str] = None
+    date: str
+    time: str
+    # Analytics fields
+    views: int = Field(default=0)
+    shares: int = Field(default=0)
+    engagement_rate: float = Field(default=0.0)
+    growth_rate: float = Field(default=0.0)
+    created_at: Optional[str] = None
+    last_viewed: Optional[str] = None
+
+
+class PublishedContentResponse(BaseModel):
+    items: List[PublishedContentItem]
+    total: int
+

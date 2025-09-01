@@ -65,6 +65,7 @@ export default function ContentGeneration() {
     return [];
   });
   const [error, setError] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState<{[key: string]: boolean}>({});
   const apiUrl = useMemo(() => (process.env.NEXT_PUBLIC_API_URL as string) || 'http://localhost:8000/api/v1', []);
 
   // Save state changes to localStorage
@@ -479,7 +480,7 @@ export default function ContentGeneration() {
                           cautions: s.cautions || null,
                           imageUrl: s.imageUrl || null,
                         })}
-                            className="px-1.5 py-0.5 border rounded text-xs hover:bg-gray-50 flex items-center space-x-1"
+                            className="px-1.5 py-0.5 border rounded text-xs hover:bg-gray-50 flex items-center space-x-1 w-20 justify-center"
                         style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
                       >
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
@@ -528,7 +529,7 @@ export default function ContentGeneration() {
                           }
                         }}
                         disabled={imageLoading[`${s.title}-${s.content}`]}
-                        className="px-1.5 py-0.5 border rounded text-xs hover:bg-gray-50 flex items-center space-x-1 disabled:opacity-50"
+                        className="px-1.5 py-0.5 border rounded text-xs hover:bg-gray-50 flex items-center space-x-1 disabled:opacity-50 w-20 justify-center"
                         style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
                       >
                         {imageLoading[`${s.title}-${s.content}`] ? (
@@ -548,17 +549,69 @@ export default function ContentGeneration() {
                           </>
                         )}
                       </button>
-                          <button className="px-1.5 py-0.5 border rounded text-xs hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
+                          <button className="px-1.5 py-0.5 border rounded text-xs hover:bg-gray-50 flex items-center space-x-1 w-20 justify-center" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#340B37'}}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12l2-2 4-4 2-2" />
                         </svg>
                         <span>Copy</span>
                       </button>
-                      <button className="px-1.5 py-0.5 bg-primary text-white rounded text-xs hover:bg-primary-dark flex items-center space-x-1">
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                        </svg>
-                        <span>Publish</span>
+                      <button 
+                        onClick={async () => {
+                          const key = `${s.title}-${s.content}`;
+                          setPublishing(prev => ({ ...prev, [key]: true }));
+                          try {
+                            const res = await fetch(`${apiUrl}/publish`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                title: s.title,
+                                content: s.content,
+                                type: s.type,
+                                reading_time: s.readingTime,
+                                quality: s.quality,
+                                tags: s.tags,
+                                highlights: s.highlights || [],
+                                neighborhoods: s.neighborhoods || [],
+                                recommended_spots: s.recommended_spots || [],
+                                price_range: s.price_range ?? null,
+                                best_times: s.best_times ?? null,
+                                cautions: s.cautions ?? null,
+                                destination: destination || undefined,
+                                image_url: s.imageUrl || undefined,
+                              })
+                            });
+                            if (!res.ok) {
+                              const err = await res.json().catch(() => null);
+                              alert(`Failed to publish: ${err?.message || res.statusText}`);
+                              return;
+                            }
+                            alert('Published! Check Content History.');
+                          } catch (e) {
+                            console.error(e);
+                            alert('Failed to publish');
+                          } finally {
+                            setPublishing(prev => ({ ...prev, [key]: false }));
+                          }
+                        }}
+                        disabled={publishing[`${s.title}-${s.content}`]}
+                        className="px-1.5 py-0.5 bg-primary text-white rounded text-xs hover:bg-primary-dark flex items-center space-x-1 disabled:opacity-50 w-20 justify-center"
+                      >
+                        {publishing[`${s.title}-${s.content}`] ? (
+                          <>
+                            <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Publishing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            </svg>
+                            <span>Publish</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
