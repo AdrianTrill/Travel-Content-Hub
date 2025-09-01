@@ -26,6 +26,75 @@ interface PublishedItem {
   typeIcon?: 'pencil' | 'camera';
 }
 
+// Cache management utilities
+const CACHE_KEY = 'published_content_cache';
+const CACHE_TIMESTAMP_KEY = 'published_content_timestamp';
+const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 1 week in milliseconds
+const CACHE_VERSION_KEY = 'published_content_version';
+const CURRENT_CACHE_VERSION = '1.0';
+
+const getCachedContent = (): PublishedItem[] | null => {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+    const version = localStorage.getItem(CACHE_VERSION_KEY);
+    
+    if (!cached || !timestamp || version !== CURRENT_CACHE_VERSION) {
+      // Clear old cache if version doesn't match
+      if (version !== CURRENT_CACHE_VERSION) {
+        clearCache();
+      }
+      return null;
+    }
+    
+    const age = Date.now() - parseInt(timestamp);
+    if (age > CACHE_DURATION) {
+      // Cache expired, clear it
+      clearCache();
+      return null;
+    }
+    
+    return JSON.parse(cached);
+  } catch (error) {
+    console.error('Error reading cache:', error);
+    return null;
+  }
+};
+
+const setCachedContent = (content: PublishedItem[]): void => {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(content));
+    localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+    localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
+  } catch (error) {
+    console.error('Error writing cache:', error);
+  }
+};
+
+const clearCache = (): void => {
+  try {
+    localStorage.removeItem(CACHE_KEY);
+    localStorage.removeItem(CACHE_TIMESTAMP_KEY);
+    localStorage.removeItem(CACHE_VERSION_KEY);
+  } catch (error) {
+    console.error('Error clearing cache:', error);
+  }
+};
+
+// Function to check if we should refresh cache
+const shouldRefreshCache = (): boolean => {
+  try {
+    const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+    if (!timestamp) return true;
+    
+    const age = Date.now() - parseInt(timestamp);
+    // Refresh if cache is older than 1 hour
+    return age > (60 * 60 * 1000);
+  } catch (error) {
+    return true;
+  }
+};
+
 export default function ContentHistory() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
@@ -41,43 +110,138 @@ export default function ContentHistory() {
 
   useEffect(() => {
     const apiUrl = (process.env.NEXT_PUBLIC_API_URL as string) || 'http://localhost:8000/api/v1';
+    
     const fetchItems = async () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(`${apiUrl}/published`);
-        if (!res.ok) {
-          throw new Error('Failed to fetch content history');
-        }
-        const data = await res.json();
-        const mapped: PublishedItem[] = (data?.items || []).map((i: any, idx: number) => ({
-          id: i.id,
-          type: i.type,
-          status: i.status || 'Published',
-          title: i.title,
-          content: i.content || '',
-          tags: i.tags || [],
-          location: i.location || i.destination || '—',
-          date: i.date,
-          time: i.time,
-          statusColor: i.status === 'Published' ? 'text-white' : 'text-black',
-          statusBg: i.status === 'Published' ? '#0F612D' : '#FFC938',
-          views: i.views || 0,
-          shares: i.shares || 0,
-          engagement_rate: i.engagement_rate || 0.0,
-          growth_rate: i.growth_rate || 0.0
-        }));
-        setItems(mapped);
         
-
+        // Try to get cached content first
+        const cachedContent = getCachedContent();
+        if (cachedContent) {
+          setItems(cachedContent);
+          setLoading(false);
+          
+          // If cache is older than 1 hour, refresh in background
+          if (shouldRefreshCache()) {
+            refreshDataInBackground();
+          }
+          return;
+        }
+        
+        // If no cache, fetch from server
+        await fetchFromServer();
+        
       } catch (e: any) {
         setError(e?.message || 'Failed to load');
       } finally {
         setLoading(false);
       }
     };
+    
+    const fetchFromServer = async () => {
+      const res = await fetch(`${apiUrl}/published`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch content history');
+      }
+      const data = await res.json();
+      const mapped: PublishedItem[] = (data?.items || []).map((i: any, idx: number) => ({
+        id: i.id,
+        type: i.type,
+        status: i.status || 'Published',
+        title: i.title,
+        content: i.content || '',
+        tags: i.tags || [],
+        location: i.location || i.destination || '—',
+        date: i.date,
+        time: i.time,
+        statusColor: i.status === 'Published' ? 'text-white' : 'text-black',
+        statusBg: i.status === 'Published' ? '#0F612D' : '#FFC938',
+        views: i.views || 0,
+        shares: i.shares || 0,
+        engagement_rate: i.engagement_rate || 0.0,
+        growth_rate: i.growth_rate || 0.0
+      }));
+      
+      setItems(mapped);
+      setCachedContent(mapped);
+    };
+    
+    const refreshDataInBackground = async () => {
+      try {
+        const res = await fetch(`${apiUrl}/published`);
+        if (res.ok) {
+          const data = await res.json();
+          const mapped: PublishedItem[] = (data?.items || []).map((i: any, idx: number) => ({
+            id: i.id,
+            type: i.type,
+            status: i.status || 'Published',
+            title: i.title,
+            content: i.content || '',
+            tags: i.tags || [],
+            location: i.location || i.destination || '—',
+            date: i.date,
+            time: i.time,
+            statusColor: i.status === 'Published' ? 'text-white' : 'text-black',
+            statusBg: i.status === 'Published' ? '#0F612D' : '#FFC938',
+            views: i.views || 0,
+            shares: i.shares || 0,
+            engagement_rate: i.engagement_rate || 0.0,
+            growth_rate: i.growth_rate || 0.0
+          }));
+          
+          setItems(mapped);
+          setCachedContent(mapped);
+        }
+      } catch (error) {
+        console.error('Background refresh failed:', error);
+      }
+    };
+    
     fetchItems();
   }, []);
+
+  // Function to refresh data from server (bypass cache)
+  const refreshData = async () => {
+    clearCache(); // Clear cache to force fresh fetch
+    const apiUrl = (process.env.NEXT_PUBLIC_API_URL as string) || 'http://localhost:8000/api/v1';
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const res = await fetch(`${apiUrl}/published`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch content history');
+      }
+      const data = await res.json();
+      const mapped: PublishedItem[] = (data?.items || []).map((i: any, idx: number) => ({
+        id: i.id,
+        type: i.type,
+        status: i.status || 'Published',
+        title: i.title,
+        content: i.content || '',
+        tags: i.tags || [],
+        location: i.location || i.destination || '—',
+        date: i.date,
+        time: i.time,
+        statusColor: i.status === 'Published' ? 'text-white' : 'text-black',
+        statusBg: i.status === 'Published' ? '#0F612D' : '#FFC938',
+        views: i.views || 0,
+        shares: i.shares || 0,
+        engagement_rate: i.engagement_rate || 0.0,
+        growth_rate: i.growth_rate || 0.0
+      }));
+      
+      setItems(mapped);
+      setCachedContent(mapped);
+      
+    } catch (e: any) {
+      setError(e?.message || 'Failed to load');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Simple filtering by search text
   const filtered = items.filter(item => {
@@ -100,8 +264,11 @@ export default function ContentHistory() {
         throw new Error('Failed to delete content');
       }
       
-      // Remove from local state
-      setItems(prev => prev.filter(item => item.id !== itemId));
+      // Remove from local state and cache
+      const updatedItems = items.filter(item => item.id !== itemId);
+      setItems(updatedItems);
+      setCachedContent(updatedItems);
+      
       alert('Content deleted successfully');
     } catch (e) {
       console.error('Failed to delete content:', e);
@@ -115,12 +282,14 @@ export default function ContentHistory() {
       const res = await fetch(`${apiUrl}/published/${itemId}/view`, { method: 'POST' });
       
       if (res.ok) {
-        // Update local state immediately
-        setItems(prev => prev.map(item => 
+        // Update local state and cache immediately
+        const updatedItems = items.map(item => 
           item.id === itemId 
             ? { ...item, views: item.views + 1 }
             : item
-        ));
+        );
+        setItems(updatedItems);
+        setCachedContent(updatedItems);
       }
     } catch (e) {
       console.error('Failed to track view:', e);
@@ -135,7 +304,20 @@ export default function ContentHistory() {
         <Sidebar quickStats={quickStats} currentPage="content-history" />
         <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
           <AnimatedContainer direction="up" delay={0.1} trigger="immediate">
-          <h1 className="text-3xl font-extrabold mb-4" style={{color: '#340B37'}}>Content History</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-extrabold" style={{color: '#340B37'}}>Content History</h1>
+            <button
+              onClick={refreshData}
+              disabled={loading}
+              className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+            </button>
+          </div>
           </AnimatedContainer>
 
           {/* Filters & Search Section */}
@@ -755,7 +937,7 @@ export default function ContentHistory() {
                       }
 
                       // Update local state with the new data
-                      setItems(prev => prev.map(item => 
+                      const updatedItems = items.map(item => 
                         item.id === editModal.item!.id 
                           ? { 
                               ...item, 
@@ -768,9 +950,11 @@ export default function ContentHistory() {
                               statusBg: editModal.item!.status === 'Published' ? '#0F612D' : '#FFC938',
                             }
                           : item
-                      ));
+                      );
+                      setItems(updatedItems);
+                      setCachedContent(updatedItems);
 
-                      setEditModal({ open: false, item: null });
+                    setEditModal({ open: false, item: null });
                     } catch (e) {
                       console.error('Failed to update content:', e);
                       alert('Failed to update content. Please try again.');
@@ -778,9 +962,9 @@ export default function ContentHistory() {
                   }}
                 className="px-3 py-2 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-1"
                 style={{backgroundColor: '#6E2168', color: '#FFFFFF'}}
-              >
+                >
                 <span>Save Changes</span>
-              </button>
+                </button>
             </div>
           </div>
         </div>
