@@ -151,20 +151,20 @@ export default function PlaceSearch({ onPlaceSelect, selectedPlace }: PlaceSearc
           value={searchQuery}
           onChange={handleSearchChange}
           onFocus={() => setIsOpen(true)}
-          className="w-full px-4 py-3 pl-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 pl-3 sm:pl-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base"
           style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
           placeholder="Search for places (Transilvania, Paris cafes)"
         />
         
         {/* Show different states in the right side */}
         {isLoading && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+          <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
+            <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-primary"></div>
           </div>
         )}
         
         {!isLoading && isSearchPending && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+          <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
             <div className="flex items-center space-x-1">
               <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse"></div>
               <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
@@ -182,17 +182,17 @@ export default function PlaceSearch({ onPlaceSelect, selectedPlace }: PlaceSearc
               onPlaceSelect('');
               setIsSearchPending(false);
             }}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         )}
         
         {!isLoading && !isSearchPending && !searchQuery && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <svg className="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
