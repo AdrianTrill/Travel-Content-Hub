@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
-import { quickStats } from '../data/mockData';
+import { QuickStat } from '../types';
 import { MagnifyingGlassIcon, FunnelIcon, EyeIcon, PencilIcon, ArrowDownTrayIcon, TrashIcon } from '@heroicons/react/24/outline';
 import AnimatedContainer from '../dashboard/components/AnimatedContainer';
 import AnimatedCounter from '../dashboard/components/AnimatedCounter';
@@ -107,6 +107,32 @@ export default function ContentHistory() {
   const [viewModal, setViewModal] = useState<{ open: boolean; item: PublishedItem | null }>({ open: false, item: null });
   const [editModal, setEditModal] = useState<{ open: boolean; item: PublishedItem | null }>({ open: false, item: null });
   const [shareModal, setShareModal] = useState<{ open: boolean; item: PublishedItem | null }>({ open: false, item: null });
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; item: PublishedItem | null }>({ open: false, item: null });
+  const [toast, setToast] = useState<string | null>(null);
+  const [derivedQuickStats, setDerivedQuickStats] = useState<QuickStat[]>([]);
+
+  // Derive quick stats whenever items change
+  useEffect(() => {
+    if (!items || items.length === 0) {
+      setDerivedQuickStats([
+        { label: 'Destinations', value: '0', icon: 'GlobeAltIcon' },
+        { label: 'Scheduled', value: '0', icon: 'CalendarIcon' },
+        { label: 'Engagement', value: '+0%', icon: 'ArrowTrendingUpIcon' },
+      ]);
+      return;
+    }
+
+    const destinations = new Set(items.map(i => (i.location || '').trim()).filter(Boolean));
+    const scheduledCount = items.filter(i => i.status === 'Scheduled').length;
+    const totalEngagement = items.reduce((acc, cur) => acc + (Number(cur.engagement_rate) || 0), 0);
+    const avgEngagement = items.length > 0 ? (totalEngagement / items.length) : 0;
+
+    setDerivedQuickStats([
+      { label: 'Destinations', value: String(destinations.size), icon: 'GlobeAltIcon' },
+      { label: 'Scheduled', value: String(scheduledCount), icon: 'CalendarIcon' },
+      { label: 'Engagement', value: `+${avgEngagement.toFixed(0)}%`, icon: 'ArrowTrendingUpIcon' },
+    ]);
+  }, [items]);
 
   useEffect(() => {
     const apiUrl = (process.env.NEXT_PUBLIC_API_URL as string) || 'http://localhost:8000/api/v1';
@@ -140,30 +166,30 @@ export default function ContentHistory() {
     };
     
     const fetchFromServer = async () => {
-      const res = await fetch(`${apiUrl}/published`);
-      if (!res.ok) {
-        throw new Error('Failed to fetch content history');
-      }
-      const data = await res.json();
-      const mapped: PublishedItem[] = (data?.items || []).map((i: any, idx: number) => ({
-        id: i.id,
-        type: i.type,
-        status: i.status || 'Published',
-        title: i.title,
-        content: i.content || '',
-        tags: i.tags || [],
-        location: i.location || i.destination || '—',
-        date: i.date,
-        time: i.time,
-        statusColor: i.status === 'Published' ? 'text-white' : 'text-black',
-        statusBg: i.status === 'Published' ? '#0F612D' : '#FFC938',
-        views: i.views || 0,
-        shares: i.shares || 0,
-        engagement_rate: i.engagement_rate || 0.0,
-        growth_rate: i.growth_rate || 0.0
-      }));
+        const res = await fetch(`${apiUrl}/published`);
+        if (!res.ok) {
+          throw new Error('Failed to fetch content history');
+        }
+        const data = await res.json();
+        const mapped: PublishedItem[] = (data?.items || []).map((i: any, idx: number) => ({
+          id: i.id,
+          type: i.type,
+          status: i.status || 'Published',
+          title: i.title,
+          content: i.content || '',
+          tags: i.tags || [],
+          location: i.location || i.destination || '—',
+          date: i.date,
+          time: i.time,
+          statusColor: i.status === 'Published' ? 'text-white' : 'text-black',
+          statusBg: i.status === 'Published' ? '#0F612D' : '#FFC938',
+          views: i.views || 0,
+          shares: i.shares || 0,
+          engagement_rate: i.engagement_rate || 0.0,
+          growth_rate: i.growth_rate || 0.0
+        }));
       
-      setItems(mapped);
+        setItems(mapped);
       setCachedContent(mapped);
     };
     
@@ -199,6 +225,24 @@ export default function ContentHistory() {
     };
     
     fetchItems();
+
+    // live updates when cache is touched anywhere in the app
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'published_content_cache') {
+        const cached = getCachedContent();
+        if (cached) setItems(cached);
+      }
+    };
+    const onCustom = () => {
+      const cached = getCachedContent();
+      if (cached) setItems(cached);
+    };
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('published-cache-updated', onCustom as EventListener);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('published-cache-updated', onCustom as EventListener);
+    };
   }, []);
 
   // Function to refresh data from server (bypass cache)
@@ -235,13 +279,13 @@ export default function ContentHistory() {
       
       setItems(mapped);
       setCachedContent(mapped);
-      
-    } catch (e: any) {
-      setError(e?.message || 'Failed to load');
-    } finally {
-      setLoading(false);
-    }
-  };
+
+      } catch (e: any) {
+        setError(e?.message || 'Failed to load');
+      } finally {
+        setLoading(false);
+      }
+    };
 
   // Simple filtering by search text
   const filtered = items.filter(item => {
@@ -254,25 +298,24 @@ export default function ContentHistory() {
   });
 
   const handleDelete = async (itemId: string) => {
-    if (!confirm('Are you sure you want to delete this content?')) return;
-    
     try {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL as string) || 'http://localhost:8000/api/v1';
       const res = await fetch(`${apiUrl}/published/${itemId}`, { method: 'DELETE' });
-      
       if (!res.ok) {
         throw new Error('Failed to delete content');
       }
-      
       // Remove from local state and cache
       const updatedItems = items.filter(item => item.id !== itemId);
       setItems(updatedItems);
       setCachedContent(updatedItems);
-      
-      alert('Content deleted successfully');
+      setDeleteModal({ open: false, item: null });
+      // toast
+      setToast('Deleted');
+      setTimeout(() => setToast(null), 2000);
     } catch (e) {
       console.error('Failed to delete content:', e);
-      alert('Failed to delete content');
+      setToast('Delete failed');
+      setTimeout(() => setToast(null), 2000);
     }
   };
 
@@ -301,23 +344,17 @@ export default function ContentHistory() {
     <div className="min-h-screen bg-[#F7F1E9]">
       <Header />
       <div className="flex flex-col md:flex-row relative">
-        <Sidebar quickStats={quickStats} currentPage="content-history" />
+        {toast && (
+          <div className="fixed top-4 right-4 z-50">
+            <div className="px-4 py-2 rounded-lg shadow-md text-white" style={{backgroundColor:'#0F612D'}}>
+              {toast}
+            </div>
+          </div>
+        )}
+        <Sidebar quickStats={derivedQuickStats} currentPage="content-history" />
         <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
           <AnimatedContainer direction="up" delay={0.1} trigger="immediate">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-extrabold" style={{color: '#340B37'}}>Content History</h1>
-            <button
-              onClick={refreshData}
-              disabled={loading}
-              className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
-            </button>
-          </div>
+          <h1 className="text-3xl font-extrabold mb-4" style={{color: '#340B37'}}>Content History</h1>
           </AnimatedContainer>
 
           {/* Filters & Search Section */}
@@ -568,7 +605,7 @@ export default function ContentHistory() {
                       <span>Export</span>
                     </button>
                       <button 
-                        onClick={() => handleDelete(content.id)}
+                        onClick={() => setDeleteModal({ open: true, item: content })}
                         className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
                         style={{backgroundColor: '#F7F1E9', borderColor: '#6E2168', color: '#6E2168'}}
                       >
@@ -599,7 +636,7 @@ export default function ContentHistory() {
                   <p className="text-sm mt-1" style={{color: '#545D6B'}}>
                   Views: {items.find(item => item.id === viewModal.item!.id)?.views || viewModal.item.views}
                 </p>
-                </div>
+              </div>
               </div>
               <button
                 onClick={() => setViewModal({ open: false, item: null })}
@@ -622,7 +659,7 @@ export default function ContentHistory() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                       <span className="text-sm font-medium" style={{color: '#340B37'}}>{viewModal.item.type}</span>
-                    </div>
+            </div>
                     <span className={`px-2 py-1 rounded-full text-sm font-medium ${viewModal.item.statusColor || 'text-white'}`} style={{backgroundColor: viewModal.item.statusBg || '#0F612D'}}>
                       {viewModal.item.status}
                     </span>
@@ -752,8 +789,8 @@ export default function ContentHistory() {
                       rows={8}
                       className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                       style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
-                    />
-                  </div>
+                />
+              </div>
 
                   {/* Tags Field */}
                   <div>
@@ -1154,7 +1191,7 @@ export default function ContentHistory() {
                   </svg>
                         <span className="text-sm font-medium" style={{color: '#340B37'}}>Copy Link</span>
                 </button>
-                    </div>
+              </div>
                   </div>
                 </div>
               </div>
@@ -1169,6 +1206,33 @@ export default function ContentHistory() {
               >
                 <span>Close</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirm Modal */}
+      {deleteModal.open && deleteModal.item && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" style={{backgroundColor: '#F7F1E9'}}>
+            <div className="flex items-center justify-between p-6 border-b border-gray-border">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 rounded-lg" style={{backgroundColor: '#F7F1E9'}}>
+                  <TrashIcon className="h-6 w-6" style={{color: '#340B37'}} />
+                </div>
+                <h2 className="text-xl font-semibold" style={{color: '#340B37'}}>Delete Content</h2>
+              </div>
+              <button onClick={() => setDeleteModal({ open: false, item: null })} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm" style={{color:'#545D6B'}}>Are you sure you want to delete "{deleteModal.item.title}"? This action cannot be undone.</p>
+            </div>
+            <div className="flex items-center justify-end px-6 pb-6 space-x-3">
+              <button onClick={() => setDeleteModal({ open: false, item: null })} className="px-3 py-2 border rounded text-sm hover:bg-gray-50" style={{backgroundColor:'#F7F1E9', borderColor:'#340B37', color:'#340B37'}}>Cancel</button>
+              <button onClick={() => handleDelete(deleteModal.item!.id)} className="px-3 py-2 rounded text-sm hover:opacity-90 transition-opacity" style={{backgroundColor:'#6E2168', color:'#FFFFFF'}}>Delete</button>
             </div>
           </div>
         </div>

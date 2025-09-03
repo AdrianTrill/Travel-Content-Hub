@@ -8,7 +8,7 @@ import Sidebar from '../components/Sidebar';
 import ContentEditor from './components/ContentEditor';
 import PlaceSearch from './components/PlaceSearch';
 import AnimatedContainer from '../dashboard/components/AnimatedContainer';
-import { quickStats } from '../data/mockData';
+import { useQuickStats } from '../utils/quickStats';
 
 interface Content {
   title: string;
@@ -27,7 +27,9 @@ interface Content {
 }
 
 export default function ContentGeneration() {
+  const quickStats = useQuickStats();
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const [selectedContent, setSelectedContent] = useState<Content | null>(null);
   const [destination, setDestination] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -207,6 +209,13 @@ export default function ContentGeneration() {
     <div className="min-h-screen bg-[#F7F1E9]">
       <Header />
       <div className="flex flex-col md:flex-row relative">
+        {toast && (
+          <div className="fixed top-4 right-4 z-50">
+            <div className="px-4 py-2 rounded-lg shadow-md text-white" style={{backgroundColor:'#0F612D'}}>
+              {toast}
+            </div>
+          </div>
+        )}
         <Sidebar quickStats={quickStats} currentPage="content-generation" />
         <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
           <AnimatedContainer direction="up" delay={0.1}>
@@ -585,7 +594,28 @@ export default function ContentGeneration() {
                               alert(`Failed to publish: ${err?.message || res.statusText}`);
                               return;
                             }
-                            alert('Published! Check Content History.');
+                            const created = await res.json();
+                            try {
+                              // Update browser cache so Content History reflects immediately
+                              const CACHE_KEY = 'published_content_cache';
+                              const CACHE_TIMESTAMP_KEY = 'published_content_timestamp';
+                              const CACHE_VERSION_KEY = 'published_content_version';
+                              const CURRENT_CACHE_VERSION = '1.0';
+                              const existing = localStorage.getItem(CACHE_KEY);
+                              const items = existing ? JSON.parse(existing) : [];
+                              // Prepend newest
+                              const updated = [created, ...items];
+                              localStorage.setItem(CACHE_KEY, JSON.stringify(updated));
+                              localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+                              localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
+                              // Notify listeners in-app (without full page reload)
+                              window.dispatchEvent(new CustomEvent('published-cache-updated'));
+                              // Show toast
+                              setToast('Published!');
+                              setTimeout(() => setToast(null), 2500);
+                            } catch {}
+                            // Optional lightweight inline confirmation (no blocking alert)
+                            // console.info('Published successfully');
                           } catch (e) {
                             console.error(e);
                             alert('Failed to publish');
