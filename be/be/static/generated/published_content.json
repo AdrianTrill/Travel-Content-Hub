@@ -1,6 +1,84 @@
 {
   "items": [
     {
+      "id": "pub_1756898523719",
+      "title": "Visit the State Rooms at Buckingham Palace",
+      "content": "Explore the lavish State Rooms of Buckingham Palace, open to the public during summer. Marvel at the ornate decor and historic artworks that adorn these grand spaces. Plan your visit in the morning to avoid the afternoon rush. After touring the rooms, enjoy a light lunch at a nearby café. Bring a credit card for easy payment.",
+      "type": "Instagram Post",
+      "reading_time": "45 sec",
+      "quality": "High",
+      "tags": [
+        "Buckingham Palace",
+        "State Rooms",
+        "London Cafés"
+      ],
+      "highlights": [
+        "Tour the State Rooms",
+        "Admire historic artworks",
+        "Enjoy lunch at a nearby café"
+      ],
+      "neighborhoods": [
+        "Westminster"
+      ],
+      "recommended_spots": [
+        "Buckingham Palace"
+      ],
+      "price_range": "Moderate",
+      "best_times": null,
+      "cautions": "Expect queues during peak hours",
+      "destination": "Buckingham Palace",
+      "image_url": null,
+      "status": "Published",
+      "location": "Buckingham Palace",
+      "date": "09/03/2025",
+      "time": "14:22",
+      "views": 0,
+      "shares": 0,
+      "engagement_rate": 0.0,
+      "growth_rate": 0.0,
+      "created_at": "2025-09-03T14:22:03.719038",
+      "last_viewed": null
+    },
+    {
+      "id": "pub_1756898518662",
+      "title": "Afternoon Tea at The Garden Café",
+      "content": "Indulge in afternoon tea at The Garden Café, located near Buckingham Palace, perfect for a mid-afternoon treat. Sip on fine tea while enjoying scones with clotted cream and seasonal pastries. Visit after your palace tour for a delightful break. Sit outside if the weather permits for a lovely garden view. Reservations are recommended to secure a table.",
+      "type": "Instagram Post",
+      "reading_time": "45 sec",
+      "quality": "High",
+      "tags": [
+        "Buckingham Palace",
+        "Afternoon Tea",
+        "The Garden Café"
+      ],
+      "highlights": [
+        "Enjoy afternoon tea",
+        "Savour scones and pastries",
+        "Relax in the garden"
+      ],
+      "neighborhoods": [
+        "Westminster"
+      ],
+      "recommended_spots": [
+        "The Garden Café"
+      ],
+      "price_range": "£20-50",
+      "best_times": null,
+      "cautions": "Make reservations to avoid disappointment",
+      "destination": "Buckingham Palace",
+      "image_url": null,
+      "status": "Published",
+      "location": "Buckingham Palace",
+      "date": "09/03/2025",
+      "time": "14:21",
+      "views": 0,
+      "shares": 0,
+      "engagement_rate": 0.0,
+      "growth_rate": 0.0,
+      "created_at": "2025-09-03T14:21:58.662646",
+      "last_viewed": null
+    },
+    {
       "id": "pub_1756816138916",
       "title": "Discover the War Museum at Edinburgh Castle",
       "content": "The National War Museum within Edinburgh Castle houses an extensive collection of military artefacts. Visit now to delve into Scotland's military history. Arrive in the afternoon, explore the exhibits, and take a moment to reflect in the quiet courtyards.",
