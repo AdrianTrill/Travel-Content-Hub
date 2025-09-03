@@ -174,7 +174,7 @@ The frontend automatically connects to the backend at `http://localhost:8000`
 
 ### Backend
 - `uvicorn app.main:app --reload` - Start development server
-- `uvicorn app.main:app --host 0.0.0.0 --port 8000` - Start production server
+- `uvicorn app.main:app --host 0.0.0.0 --port 8000` - Start production server.
 
 ## Color Scheme
 
