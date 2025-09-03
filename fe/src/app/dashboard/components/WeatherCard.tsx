@@ -63,7 +63,7 @@ export default function WeatherCard({ weatherData, isLoading = false }: WeatherC
         </svg>
         <span>Destination Weather</span>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-3 min-h-[176px]">
         {isLoading ? (
           <>
             <Skeleton />
@@ -73,8 +73,8 @@ export default function WeatherCard({ weatherData, isLoading = false }: WeatherC
         ) : !hasData ? (
           <EmptyState />
         ) : (
-          weatherData.map((weather) => (
-            <div key={weather.city} className="bg-white border border-gray-border rounded-lg p-4 shadow-sm transition-all duration-300 ease-out opacity-0 animate-[fadeIn_0.3s_ease-out_forwards]" style={{backgroundColor: '#F8F9F9'}}>
+          weatherData.map((weather, idx) => (
+            <div key={weather.city} className="bg-white border border-gray-border rounded-lg p-4 shadow-sm transition-all duration-300 ease-out opacity-0" style={{backgroundColor: '#F8F9F9', animation: `fadeIn 320ms ease-out forwards`, animationDelay: `${idx * 60}ms`}}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   {getWeatherIcon(weather.condition)}
@@ -93,7 +93,7 @@ export default function WeatherCard({ weatherData, isLoading = false }: WeatherC
         )}
       </div>
       <style jsx>{`
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
