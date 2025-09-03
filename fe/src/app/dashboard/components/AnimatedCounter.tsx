@@ -14,6 +14,8 @@ export default function AnimatedCounter({ value, duration = 2, className = '', t
   const [count, setCount] = useState(0);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const previousValueRef = useRef<number>(0);
+  const isInitialRenderRef = useRef(true);
 
   useEffect(() => {
     const shouldAnimate = trigger === 'immediate' || isInView;
@@ -28,6 +30,11 @@ export default function AnimatedCounter({ value, duration = 2, className = '', t
         numericValue = value;
       }
 
+      // On first render or page refresh, start from 0
+      // On subsequent updates, start from previous value
+      const startValue = isInitialRenderRef.current ? 0 : previousValueRef.current;
+      isInitialRenderRef.current = false;
+      
       const startTime = Date.now();
       
       const animate = () => {
@@ -36,7 +43,7 @@ export default function AnimatedCounter({ value, duration = 2, className = '', t
         
         // Easing function for smooth animation
         const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-        const currentCount = numericValue * easeOutQuart;
+        const currentCount = startValue + (numericValue - startValue) * easeOutQuart;
         
         setCount(currentCount);
         
@@ -45,6 +52,7 @@ export default function AnimatedCounter({ value, duration = 2, className = '', t
         } else {
           // Ensure we reach the final value exactly
           setCount(numericValue);
+          previousValueRef.current = numericValue;
         }
       };
       
@@ -60,8 +68,10 @@ export default function AnimatedCounter({ value, duration = 2, className = '', t
           const match = value.match(/[\d.]+/);
           const numericValue = match ? parseFloat(match[0]) : 0;
           setCount(numericValue);
+          previousValueRef.current = numericValue;
         } else {
           setCount(value);
+          previousValueRef.current = value;
         }
       }, duration * 1000 + 100);
       return () => clearTimeout(timer);

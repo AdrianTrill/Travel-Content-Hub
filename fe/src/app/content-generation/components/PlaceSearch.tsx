@@ -150,10 +150,10 @@ export default function PlaceSearch({ onPlaceSelect, selectedPlace }: PlaceSearc
           type="text"
           value={searchQuery}
           onChange={handleSearchChange}
-          onFocus={handleInputFocus}
-          placeholder="Search for places (e.g., Transilvania, Paris cafes)..."
-          className="w-full px-3 py-2 border border-gray-border rounded-lg text-gray-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent pr-10"
-          style={{backgroundColor: '#FFFFFF'}}
+          onFocus={() => setIsOpen(true)}
+          className="w-full px-4 py-3 pl-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+          placeholder="Search for places (Transilvania, Paris cafes)"
         />
         
         {/* Show different states in the right side */}
@@ -200,11 +200,6 @@ export default function PlaceSearch({ onPlaceSelect, selectedPlace }: PlaceSearc
       </div>
 
       {/* Status messages */}
-      {isSearchPending && searchQuery && (
-        <p className="text-sm text-gray-500 mt-1">
-          Type to search... (searching in 800ms)
-        </p>
-      )}
       
       {isLoading && (
         <p className="text-sm text-gray-500 mt-1">

@@ -2,21 +2,97 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import List
+import os
+from datetime import datetime
+from typing import List, Dict, Any, Optional
 
 from openai import OpenAI
 from openai import NotFoundError, RateLimitError
 from fastapi import APIRouter, HTTPException
-from pydantic import ValidationError
+from pydantic import ValidationError, BaseModel
 
 from app.core.config import settings
-from app.schemas.content import ContentRequest, ContentResponse, ContentSuggestion, ImageGenerationRequest, ImageGenerationResponse, PlaceSearchRequest, PlaceSearchResponse, Place
+from app.schemas.content import ContentRequest, ContentResponse, ContentSuggestion, ImageGenerationRequest, ImageGenerationResponse, PlaceSearchRequest, PlaceSearchResponse, Place, CustomPromptRequest, CustomPromptResponse, PublishContentRequest, PublishedContentItem, PublishedContentResponse
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Configure OpenAI client
 client = OpenAI(api_key=settings.openai_api_key)
+
+PUBLISH_STORE_PATH = os.path.join("be", "static", "generated", "published_content.json")
+
+
+def _ensure_publish_store() -> None:
+    os.makedirs(os.path.dirname(PUBLISH_STORE_PATH), exist_ok=True)
+    if not os.path.exists(PUBLISH_STORE_PATH):
+        with open(PUBLISH_STORE_PATH, "w") as f:
+            json.dump({"items": []}, f)
+
+
+
+
+
+def _write_publish_store(data: Dict[str, Any]) -> None:
+    _ensure_publish_store()
+    with open(PUBLISH_STORE_PATH, "w") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _migrate_existing_items(store: Dict[str, Any]) -> None:
+    """Migrate existing items to include new analytics fields."""
+    try:
+        items = store.get("items", [])
+        migrated = False
+        valid_items = []
+        
+        for item in items:
+            # Skip items that are missing essential fields
+            if not item.get("id") or not item.get("title"):
+                logger.warning(f"Skipping invalid item: {item}")
+                continue
+                
+            # Add missing analytics fields if they don't exist
+            if "views" not in item:
+                item["views"] = 0
+                migrated = True
+            if "shares" not in item:
+                item["shares"] = 0
+                migrated = True
+            if "engagement_rate" not in item:
+                item["engagement_rate"] = 0.0
+                migrated = True
+            if "growth_rate" not in item:
+                item["growth_rate"] = 0.0
+                migrated = True
+            if "created_at" not in item:
+                item["created_at"] = item.get("date", "")
+                migrated = True
+            if "last_viewed" not in item:
+                item["last_viewed"] = None
+                migrated = True
+            
+            valid_items.append(item)
+        
+        # Update store with only valid items
+        store["items"] = valid_items
+        
+        if migrated or len(valid_items) != len(items):
+            logger.info(f"Migrated existing items and cleaned up. Valid items: {len(valid_items)}")
+    except Exception as e:
+        logger.error(f"Error during migration: {e}")
+
+
+def _read_publish_store() -> Dict[str, Any]:
+    _ensure_publish_store()
+    with open(PUBLISH_STORE_PATH, "r") as f:
+        try:
+            store = json.load(f)
+            # Migrate existing items when reading (pass store to avoid recursion)
+            _migrate_existing_items(store)
+            return store
+        except Exception:
+            return {"items": []}
 
 @router.post("/generate-content", response_model=ContentResponse)
 async def generate_content(payload: ContentRequest) -> ContentResponse:
@@ -46,27 +122,33 @@ async def generate_content(payload: ContentRequest) -> ContentResponse:
             '- Include seasonal/temporal cues ONLY if present or safely inferable (e.g., "late summer" → summer).\n'
             '- Numbers only if present in inputs; otherwise use qualitative ranges (e.g., "£", "moderate").\n'
             '- Ban clichés & filler: hidden gem, bustling, vibrant, picturesque, must-see, must-try, rich tapestry, iconic, enchanting, unforgettable, culinary journey, delectable, mouthwatering, gem.\n\n'
+            'PRICE RULES:\n'
+            '- For price_range: Use descriptive terms like "Free", "Budget-friendly", "Moderate", "Premium", "Luxury" or specific ranges like "£5-15", "€20-50"\n'
+            '- NEVER use just "$", "$$", "$$$" symbols\n'
+            '- If price is unknown, set price_range to null\n'
+            '- Be specific about what the price covers (entry fee, meal, activity, etc.)\n\n'
             'OUTPUT (JSON only; no markdown, no extra keys):\n'
             '{\n'
             '  "suggestions": [{\n'
             '    "title": str,                  // concrete + specific\n'
             '    "content": str,                // 35–60 words IG, 60–100 FB, 80–130 Blog\n'
-            '    "type": str,\n'
+            '    "type": str,                   // content type\n'
             '    "reading_time": str,           // e.g., "45 sec" or "3 min"\n'
             '    "quality": "High" | "Medium",\n'
             '    "tags": [str],\n'
             '    "highlights": [str],           // 3–5 terse bullets; concrete (things to do/eat/see)\n'
             '    "neighborhoods": [str],\n'
             '    "recommended_spots": [str],    // venues/landmarks actually referenced in content\n'
-            '    "price_range": str | null,     // $, ££, etc. or null if unknown\n'
-            '    "best_times": str | null,      // only if in inputs or safely inferred (e.g., morning)\n'
+            '    "price_range": str | null,     // descriptive price info or null if unknown\n'
+            '    "best_times": str | null,      // only if in inputs or safely inferred\n'
             '    "cautions": str | null         // e.g., crowds, queues, cashless\n'
             '  }]\n'
             '}\n\n'
             'VALIDATION (before output)\n'
             '- The PLACE referenced in content MUST appear in recommended_spots or neighborhoods.\n'
             '- Each highlight must be a tangible action/item (not generic praise).\n'
-            '- Remove banned words. If any remain, rewrite once then output.'
+            '- Remove banned words. If any remain, rewrite once then output.\n'
+            '- Price_range must be descriptive, not just symbols.'
         )
 
         user_prompt = (
@@ -221,6 +303,11 @@ async def search_places(payload: PlaceSearchRequest) -> PlaceSearchResponse:
             '- For regions, cover different areas and types of attractions\n'
             '- IMPORTANT: Only return places that are DIRECTLY related to the search query\n'
             '- Do NOT return generic or unrelated places\n\n'
+            'PRICE RULES:\n'
+            '- For price_range: Use descriptive terms like "Free", "Budget-friendly", "Moderate", "Premium", "Luxury" or specific ranges like "£5-15", "€20-50"\n'
+            '- NEVER use just "$", "$$", "$$$" symbols\n'
+            '- If price is unknown, set price_range to null\n'
+            '- Be specific about what the price covers (entry fee, meal, activity, etc.)\n\n'
             'OUTPUT FORMAT (JSON only):\n'
             '{\n'
             '  "places": [\n'
@@ -430,4 +517,368 @@ async def generate_image(payload: ImageGenerationRequest) -> ImageGenerationResp
         logger.error(f"Unexpected error in image generation: {str(e)}")
         raise HTTPException(status_code=500, detail={"message": "Internal server error"})
 
+@router.post("/generate-custom-content", response_model=CustomPromptResponse)
+async def generate_custom_content(payload: CustomPromptRequest) -> CustomPromptResponse:
+    """Generate AI-powered travel content based on a custom user prompt."""
+    try:
+        logger.info(f"Custom prompt request received for destination: '{payload.destination}'")
+        
+        # Define candidate models to try in order
+        candidate_models = [
+            settings.openai_model,
+            "gpt-4o-mini",
+            "gpt-4o",
+            "gpt-4-1106-preview"
+        ]
+        
+        system_instructions = (
+            'You are a senior travel editor and content creator. Your task is to generate high-quality travel content based on the user\'s custom prompt.\n\n'
+            'CONTENT RULES:\n'
+            '- Follow the user\'s custom prompt EXACTLY as specified\n'
+            '- Generate content that matches the requested content type and style\n'
+            '- Ensure all content is accurate and relevant to the destination\n'
+            '- Include practical information, tips, and recommendations\n'
+            '- Make the content engaging, informative, and useful for travelers\n'
+            '- If existing content is provided, improve or modify it according to the prompt\n\n'
+            'PRICE RULES:\n'
+            '- For price_range: Use descriptive terms like "Free", "Budget-friendly", "Moderate", "Premium", "Luxury" or specific ranges like "£5-15", "€20-50"\n'
+            '- NEVER use just "$", "$$", "$$$" symbols\n'
+            '- If price is unknown, set price_range to null\n'
+            '- Be specific about what the price covers (entry fee, meal, activity, etc.)\n\n'
+            'OUTPUT FORMAT (JSON only):\n'
+            '{\n'
+            '  "title": "Engaging title based on the prompt",\n'
+            '  "content": "Content generated according to the custom prompt",\n'
+            '  "type": "Content type (Blog Post, Instagram Post, etc.)",\n'
+            '  "reading_time": "Estimated reading time (e.g., 3 min)",\n'
+            '  "quality": "High",\n'
+            '  "tags": ["relevant", "tags", "for", "content"],\n'
+            '  "highlights": ["Key highlight 1", "Key highlight 2", "Key highlight 3"],\n'
+            '  "neighborhoods": ["Relevant neighborhoods or areas"],\n'
+            '  "recommended_spots": ["Specific places, venues, or attractions"],\n'
+            '  "price_range": "Descriptive price info or null",\n'
+            '  "best_times": "Best times to visit if relevant",\n'
+            '  "cautions": "Important notes or warnings if relevant"\n'
+            '}\n\n'
+            'IMPORTANT: The content must directly address and fulfill the user\'s custom prompt requirements. Price_range must be descriptive, not just symbols.'
+        )
+
+        user_prompt = f"""Custom Prompt: {payload.prompt}
+
+Destination: {payload.destination}
+Content Type: {payload.content_type}
+Language: {payload.language}
+{f"Existing Content to Improve: {payload.existing_content}" if payload.existing_content else ""}
+
+Please generate content that specifically addresses the custom prompt above. The content should be tailored to the destination and content type requested."""
+
+        logger.info(f"Using custom prompt for content generation")
+        
+        # Try each model until one works
+        last_error = None
+        for model in candidate_models:
+            try:
+                logger.info(f"Attempting custom content generation with model: {model}")
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_instructions},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0.7,
+                    max_tokens=2000
+                )
+                
+                content = response.choices[0].message.content.strip()
+                logger.info(f"Received custom content response from model {model}, content length: {len(content)}")
+                
+                # Try to parse the JSON response
+                try:
+                    # Remove any markdown formatting if present
+                    if content.startswith('```json'):
+                        content = content.split('```json')[1]
+                    if content.endswith('```'):
+                        content = content.rsplit('```', 1)[0]
+                    
+                    data = json.loads(content.strip())
+                    logger.info(f"Successfully parsed custom content JSON response")
+                    
+                    # Create the response object
+                    custom_response = CustomPromptResponse(
+                        title=data.get('title', 'Custom Generated Title'),
+                        content=data.get('content', 'Custom generated content'),
+                        type=data.get('type', payload.content_type),
+                        reading_time=data.get('reading_time', '3 min'),
+                        quality=data.get('quality', 'High'),
+                        tags=data.get('tags', []),
+                        highlights=data.get('highlights', []),
+                        neighborhoods=data.get('neighborhoods', []),
+                        recommended_spots=data.get('recommended_spots', []),
+                        price_range=data.get('price_range'),
+                        best_times=data.get('best_times'),
+                        cautions=data.get('cautions'),
+                        generated_from_prompt=payload.prompt
+                    )
+                    
+                    logger.info(f"Successfully created custom content response")
+                    return custom_response
+                    
+                except json.JSONDecodeError as json_error:
+                    logger.warning(f"JSON decode error with model {model}: {json_error}")
+                    last_error = json_error
+                    continue
+                    
+            except NotFoundError as e:
+                logger.warning(f"Model {model} not found: {e}")
+                last_error = e
+                continue
+            except RateLimitError as e:
+                logger.error(f"Rate limit exceeded: {e}")
+                raise HTTPException(
+                    status_code=429, 
+                    detail={"message": "OpenAI API rate limit exceeded. Please check your billing and quota."}
+                )
+            except Exception as e:
+                logger.error(f"Error with model {model}: {e}")
+                last_error = e
+                continue
+        
+        # If we get here, all models failed
+        logger.error(f"All models failed for custom content generation. Last error: {last_error}")
+        raise HTTPException(status_code=500, detail={"message": "Failed to generate custom content"})
+        
+    except ValidationError as e:
+        logger.error(f"Validation error in custom content generation: {str(e)}")
+        raise HTTPException(status_code=400, detail={"message": "Invalid request data"})
+    except Exception as e:
+        logger.error(f"Unexpected error in custom content generation: {str(e)}")
+        raise HTTPException(status_code=500, detail={"message": "Internal server error"})
+
+
+@router.post("/publish", response_model=PublishedContentItem)
+async def publish_content(payload: PublishContentRequest) -> PublishedContentItem:
+    """Persist a piece of content as Published and return stored item."""
+    try:
+        store = _read_publish_store()
+        now = datetime.now()
+        date_str = now.strftime("%m/%d/%Y")
+        time_str = now.strftime("%H:%M")
+        item = PublishedContentItem(
+            id=f"pub_{int(now.timestamp()*1000)}",
+            title=payload.title,
+            content=payload.content,
+            type=payload.type,
+            reading_time=payload.reading_time,
+            quality=payload.quality,
+            tags=payload.tags or [],
+            highlights=payload.highlights or [],
+            neighborhoods=payload.neighborhoods or [],
+            recommended_spots=payload.recommended_spots or [],
+            price_range=payload.price_range,
+            best_times=payload.best_times,
+            cautions=payload.cautions,
+            destination=payload.destination,
+            image_url=payload.image_url,
+            status="Published",
+            location=payload.destination,
+            date=date_str,
+            time=time_str,
+            # Initialize analytics
+            views=0,
+            shares=0,
+            engagement_rate=0.0,
+            growth_rate=0.0,
+            created_at=now.isoformat(),
+            last_viewed=None,
+        )
+
+        items = store.get("items", [])
+        items.insert(0, item.dict())
+        store["items"] = items
+        _write_publish_store(store)
+        return item
+    except ValidationError as e:
+        logger.error(f"Validation error: {str(e)}")
+        raise HTTPException(status_code=400, detail={"message": "Invalid request data"})
+    except Exception as e:
+        logger.error(f"Unexpected error in publish: {str(e)}")
+        raise HTTPException(status_code=500, detail={"message": "Internal server error"})
+
+
+@router.get("/published", response_model=PublishedContentResponse)
+async def list_published_content() -> PublishedContentResponse:
+    """Return all published content items (most recent first)."""
+    try:
+        store = _read_publish_store()
+        items = store.get("items", [])
+        # Handle existing items that might not have new analytics fields
+        parsed_items = []
+        for item_data in items:
+            # Ensure all required fields are present with defaults
+            item_with_defaults = {
+                "id": item_data.get("id", ""),
+                "title": item_data.get("title", ""),
+                "content": item_data.get("content", ""),
+                "type": item_data.get("type", ""),
+                "reading_time": item_data.get("reading_time", ""),
+                "quality": item_data.get("quality", ""),
+                "tags": item_data.get("tags", []),
+                "highlights": item_data.get("highlights", []),
+                "neighborhoods": item_data.get("neighborhoods", []),
+                "recommended_spots": item_data.get("recommended_spots", []),
+                "price_range": item_data.get("price_range"),
+                "best_times": item_data.get("best_times"),
+                "cautions": item_data.get("cautions"),
+                "destination": item_data.get("destination"),
+                "image_url": item_data.get("image_url"),
+                "status": item_data.get("status", "Published"),
+                "location": item_data.get("location"),
+                "date": item_data.get("date", ""),
+                "time": item_data.get("time", ""),
+                # Analytics fields with defaults
+                "views": item_data.get("views", 0),
+                "shares": item_data.get("shares", 0),
+                "engagement_rate": item_data.get("engagement_rate", 0.0),
+                "growth_rate": item_data.get("growth_rate", 0.0),
+                "created_at": item_data.get("created_at") or item_data.get("date", ""),  # Fallback to date if no created_at
+                "last_viewed": item_data.get("last_viewed")
+            }
+            parsed_items.append(PublishedContentItem(**item_with_defaults))
+        return PublishedContentResponse(items=parsed_items, total=len(parsed_items))
+    except Exception as e:
+        logger.error(f"Unexpected error reading published items: {str(e)}")
+        raise HTTPException(status_code=500, detail={"message": "Failed to read published content"})
+
+
+@router.post("/published/{item_id}/view")
+async def track_view(item_id: str):
+    """Track a view for a published content item."""
+    try:
+        store = _read_publish_store()
+        items = store.get("items", [])
+        
+        # Find and update the item
+        for item in items:
+            if item.get("id") == item_id:
+                item["views"] = item.get("views", 0) + 1
+                item["last_viewed"] = datetime.now().isoformat()
+                
+                # Calculate engagement rate (simplified: views + shares / total possible)
+                total_interactions = item.get("views", 0) + item.get("shares", 0)
+                if total_interactions > 0:
+                    item["engagement_rate"] = round((total_interactions / (total_interactions + 10)) * 100, 1)
+                
+                # Calculate growth rate (simplified: based on recent activity)
+                if item.get("views", 0) > 10:
+                    item["growth_rate"] = round(min(25.0, (item.get("views", 0) / 10) * 5), 1)
+                
+                _write_publish_store(store)
+                return {"message": "View tracked", "views": item["views"]}
+        
+        raise HTTPException(status_code=404, detail="Content item not found")
+    except Exception as e:
+        logger.error(f"Error tracking view: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to track view")
+
+
+@router.post("/published/{item_id}/share")
+async def track_share(item_id: str):
+    """Track a share for a published content item."""
+    try:
+        store = _read_publish_store()
+        items = store.get("items", [])
+        
+        # Find and update the item
+        for item in items:
+            if item.get("id") == item_id:
+                item["shares"] = item.get("shares", 0) + 1
+                
+                # Recalculate engagement rate
+                total_interactions = item.get("views", 0) + item.get("shares", 0)
+                if total_interactions > 0:
+                    item["engagement_rate"] = round((total_interactions / (total_interactions + 10)) * 100, 1)
+                
+                _write_publish_store(store)
+                return {"message": "Share tracked", "shares": item["shares"]}
+        
+        raise HTTPException(status_code=404, detail="Content item not found")
+    except Exception as e:
+        logger.error(f"Error tracking share: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to track share")
+
+
+@router.delete("/published/{item_id}")
+async def delete_published_item(item_id: str):
+    """Delete a published content item."""
+    try:
+        store = _read_publish_store()
+        items = store.get("items", [])
+        
+        # Find and remove the item
+        original_length = len(items)
+        items = [item for item in items if item.get("id") != item_id]
+        
+        if len(items) == original_length:
+            raise HTTPException(status_code=404, detail="Content item not found")
+        
+        store["items"] = items
+        _write_publish_store(store)
+        return {"message": "Content item deleted successfully"}
+    except Exception as e:
+        logger.error(f"Error deleting item: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to delete item")
+
+
+class UpdatePublishedContentRequest(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    type: Optional[str] = None
+    tags: Optional[List[str]] = None
+    highlights: Optional[List[str]] = None
+    neighborhoods: Optional[List[str]] = None
+    recommended_spots: Optional[List[str]] = None
+    price_range: Optional[str] = None
+    best_times: Optional[str] = None
+    cautions: Optional[str] = None
+    destination: Optional[str] = None
+    image_url: Optional[str] = None
+    status: Optional[str] = None
+    location: Optional[str] = None
+
+
+@router.put("/published/{item_id}", response_model=PublishedContentItem)
+async def update_published_item(item_id: str, payload: UpdatePublishedContentRequest):
+    """Update a published content item."""
+    try:
+        store = _read_publish_store()
+        items = store.get("items", [])
+        
+        # Find and update the item
+        for item in items:
+            if item.get("id") == item_id:
+                # Update the item with new data
+                item.update({
+                    "title": payload.title if payload.title is not None else item.get("title"),
+                    "content": payload.content if payload.content is not None else item.get("content"),
+                    "type": payload.type if payload.type is not None else item.get("type"),
+                    "tags": payload.tags if payload.tags is not None else item.get("tags"),
+                    "highlights": payload.highlights if payload.highlights is not None else item.get("highlights"),
+                    "neighborhoods": payload.neighborhoods if payload.neighborhoods is not None else item.get("neighborhoods"),
+                    "recommended_spots": payload.recommended_spots if payload.recommended_spots is not None else item.get("recommended_spots"),
+                    "price_range": payload.price_range if payload.price_range is not None else item.get("price_range"),
+                    "best_times": payload.best_times if payload.best_times is not None else item.get("best_times"),
+                    "cautions": payload.cautions if payload.cautions is not None else item.get("cautions"),
+                    "destination": payload.destination if payload.destination is not None else item.get("destination"),
+                    "image_url": payload.image_url if payload.image_url is not None else item.get("image_url"),
+                    "status": payload.status if payload.status is not None else item.get("status"),
+                    "location": payload.location if payload.location is not None else item.get("location"),
+                })
+                
+                _write_publish_store(store)
+                return PublishedContentItem(**item) # Return the updated item
+        
+        raise HTTPException(status_code=404, detail="Content item not found")
+    except Exception as e:
+        logger.error(f"Error updating item: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to update item")
 
