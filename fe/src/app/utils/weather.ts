@@ -88,9 +88,13 @@ export async function fetchWeatherForCities(cities: string[], limit: number = 4)
 export function deriveCitiesFromPublishedCache(max: number = 4): string[] {
   try {
     const cached = localStorage.getItem('published_content_cache');
-    const items = cached ? JSON.parse(cached) : [];
-    const cities = items.map((i: any) => (i.location || i.destination || '').trim()).filter(Boolean);
-    return Array.from(new Set(cities)).slice(0, max);
+    const items: any[] = cached ? JSON.parse(cached) : [];
+    const raw: string[] = items
+      .map((i: any) => (i?.location || i?.destination || ''))
+      .filter((s: unknown): s is string => typeof s === 'string' && s.trim().length > 0)
+      .map((s: string) => s.trim());
+    const unique: string[] = Array.from(new Set<string>(raw)).slice(0, max);
+    return unique;
   } catch {
     return [];
   }
