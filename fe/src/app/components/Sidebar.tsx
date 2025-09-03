@@ -9,6 +9,7 @@ import {
   CalendarIcon,
   ChartBarIcon,
   ArrowTrendingUpIcon,
+  ShareIcon,
 } from '@heroicons/react/24/outline';
 import { QuickStat } from '../types';
 import Link from 'next/link';
@@ -146,6 +147,8 @@ export default function Sidebar({ quickStats, currentPage = 'dashboard' }: Sideb
                   return GlobeAltIcon;
                 case 'CalendarIcon':
                   return CalendarIcon;
+                case 'ShareIcon':
+                  return ShareIcon;
                 case 'ChartBarIcon':
                   return ChartBarIcon;
                 case 'ArrowTrendingUpIcon':

@@ -7,14 +7,17 @@ import WeatherCard from './components/WeatherCard';
 import EventsCard from './components/EventsCard';
 import LandmarksCard from './components/LandmarksCard';
 import AnimatedContainer from './components/AnimatedContainer';
-import { events, landmarks } from '../data/mockData';
 import { EyeIcon, ShareIcon, ClockIcon, HandThumbUpIcon } from '@heroicons/react/24/outline';
 import { useQuickStats } from '../utils/quickStats';
+import { useEvents } from '../utils/events';
+import { useLandmarks } from '../utils/landmarks';
 import type { MetricCard as MetricCardType, WeatherInfo } from '../types';
 import { deriveCitiesFromPublishedCache, fetchWeatherForCities } from '../utils/weather';
 
 export default function Dashboard() {
   const quickStats = useQuickStats();
+  const events = useEvents();
+  const landmarks = useLandmarks();
   const [cards, setCards] = useState<MetricCardType[]>([{
     title: 'Total Views', value: '0', change: '+0%', isPositive: true, icon: EyeIcon,
   }, {
