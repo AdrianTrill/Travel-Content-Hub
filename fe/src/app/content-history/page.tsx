@@ -487,20 +487,20 @@ export default function ContentHistory() {
                   
                   {/* Right side - Metadata */}
                   <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm" style={{color: '#374151'}}>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-2">
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                       <span>{content.location}</span>
                     </div>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-2">
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                       <span>{content.date}</span>
                     </div>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-2">
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
@@ -857,44 +857,44 @@ export default function ContentHistory() {
                       <label className="block text-sm font-medium mb-2" style={{color: '#340B37'}}>
                         Content Type
                       </label>
-                      <select
-                        value={editModal.item.type}
-                        onChange={(e) => setEditModal(prev => ({ 
-                          ...prev, 
-                          item: prev.item ? { ...prev.item, type: e.target.value } : null 
-                        }))}
+                        <select
+                          value={editModal.item.type}
+                          onChange={(e) => setEditModal(prev => ({ 
+                            ...prev, 
+                            item: prev.item ? { ...prev.item, type: e.target.value } : null 
+                          }))}
                         className="w-full h-12 px-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none pr-8"
                         style={{backgroundColor: '#FFFFFF', color: '#374151'}}
-                      >
-                        <option value="Instagram Post">Instagram Post</option>
-                        <option value="Facebook Post">Facebook Post</option>
-                        <option value="Blog Post">Blog Post</option>
-                      </select>
+                        >
+                          <option value="Instagram Post">Instagram Post</option>
+                          <option value="Facebook Post">Facebook Post</option>
+                          <option value="Blog Post">Blog Post</option>
+                        </select>
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium mb-2" style={{color: '#340B37'}}>
                         Status
                       </label>
-                      <select
-                        value={editModal.item.status}
-                        onChange={(e) => setEditModal(prev => ({ 
-                          ...prev, 
-                          item: prev.item ? { 
-                            ...prev.item, 
-                            status: e.target.value,
-                            statusColor: e.target.value === 'Published' ? 'text-white' : 'text-black',
-                            statusBg: e.target.value === 'Published' ? '#0F612D' : '#FFC938'
-                          } : null 
-                        }))}
+                        <select
+                          value={editModal.item.status}
+                          onChange={(e) => setEditModal(prev => ({ 
+                            ...prev, 
+                            item: prev.item ? { 
+                              ...prev.item, 
+                              status: e.target.value,
+                              statusColor: e.target.value === 'Published' ? 'text-white' : 'text-black',
+                              statusBg: e.target.value === 'Published' ? '#0F612D' : '#FFC938'
+                            } : null 
+                          }))}
                         className="w-full h-12 px-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none pr-8"
                         style={{backgroundColor: '#FFFFFF', color: '#374151'}}
-                      >
-                        <option value="Published">Published</option>
-                        <option value="Draft">Draft</option>
-                        <option value="Scheduled">Scheduled</option>
-                        <option value="Archived">Archived</option>
-                      </select>
+                        >
+                          <option value="Published">Published</option>
+                          <option value="Draft">Draft</option>
+                          <option value="Scheduled">Scheduled</option>
+                          <option value="Archived">Archived</option>
+                        </select>
                     </div>
                   </div>
 
