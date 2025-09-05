@@ -439,8 +439,8 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
                 placeholder="Write your custom prompt for the AI. For example: 'Write a blog post about hidden cafes in this city that locals love, with specific recommendations and insider tips'"
-                rows={6}
-                className="w-full h-12 px-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                rows={12}
+                className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                 style={{backgroundColor: '#FFFFFF', color: '#374151'}}
               />
               <p className="text-sm text-gray-700 mt-2">
