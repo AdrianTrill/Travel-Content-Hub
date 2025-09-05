@@ -12,7 +12,7 @@ export default function SettingsPage() {
       <Header />
       <div className="flex flex-col md:flex-row">
         <Sidebar quickStats={quickStats} currentPage="settings" />
-        <main className="flex-1 p-4 md:p-8">
+        <main className="flex-1 p-4 md:p-8 pb-0">
           <SettingsContent />
         </main>
       </div>

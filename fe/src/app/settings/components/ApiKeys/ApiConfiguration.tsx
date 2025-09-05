@@ -94,7 +94,7 @@ export default function ApiConfiguration() {
           <h2 className="text-xl font-semibold text-[#340B37] break-words">API Configuration</h2>
         </div>
 
-        <div className="space-y-4 sm:space-y-6 mb-6">
+        <div className="space-y-4 sm:space-y-6">
           {apiIntegrations.map((integration, index) => (
             <div
               key={integration.name}
@@ -113,22 +113,22 @@ export default function ApiConfiguration() {
             </div>
           ))}
         </div>
+      </div>
 
-        <div 
-          className={`flex justify-end transition-all duration-700 ease-out ${
-            animateElements ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-          style={{
-            transitionDelay: '400ms'
-          }}
-        >
-          <button className="bg-[#6E2168] hover:bg-[#6E2168]/90 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium flex items-center space-x-2 transition-colors w-full sm:w-auto justify-center sm:justify-start">
-            <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2zM8 7h8M8 11h8M8 15h8" />
-            </svg>
-            <span>Save Settings</span>
-          </button>
-        </div>
+      <div 
+        className={`flex justify-end mt-6 sm:mt-8 w-full transition-all duration-700 ease-out ${
+          animateElements ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}
+        style={{
+          transitionDelay: '400ms'
+        }}
+      >
+        <button className="bg-[#6E2168] hover:bg-[#6E2168]/90 text-white px-4 sm:px-6 h-12 rounded-lg font-medium flex items-center space-x-2 transition-colors w-full sm:w-auto justify-center sm:justify-start">
+          <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2zM8 7h8M8 11h8M8 15h8" />
+          </svg>
+          <span>Save Settings</span>
+        </button>
       </div>
     </div>
   );

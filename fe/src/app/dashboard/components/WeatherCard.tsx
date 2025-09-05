@@ -57,12 +57,12 @@ export default function WeatherCard({ weatherData, isLoading = false }: WeatherC
 
   return (
     <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6 h-full">
-      <div className="section-title mb-4">
+      <h2 className="section-title mb-4">
         <svg className="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
           <path d="M7.5 19.5h9a4 4 0 0 0 0-8h-.2A6.5 6.5 0 0 0 5.5 9.8a3.8 3.8 0 0 0 2 7.2z" />
         </svg>
         <span>Destination Weather</span>
-      </div>
+      </h2>
       <div className="space-y-3 min-h-[176px]">
         {isLoading ? (
           <>

@@ -9,7 +9,7 @@ export default function SettingsContent() {
   const [activeTab, setActiveTab] = useState('api-keys');
 
   return (
-    <div className="bg-[#F7F1E9] min-h-screen p-4 sm:p-6 lg:p-8 overflow-x-hidden w-full max-w-full">
+    <div className="bg-[#F7F1E9] px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8 pb-0 overflow-x-hidden w-full max-w-full">
       <div className="w-full max-w-full">
         <AnimatedContainer direction="up" delay={0.2}>
           <div className="flex items-center justify-between mb-6 w-full">

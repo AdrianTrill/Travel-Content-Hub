@@ -151,8 +151,8 @@ export default function PlaceSearch({ onPlaceSelect, selectedPlace }: PlaceSearc
           value={searchQuery}
           onChange={handleSearchChange}
           onFocus={() => setIsOpen(true)}
-          className="w-full px-4 py-3 pl-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-          style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+          className="w-full h-12 px-4 pl-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          style={{backgroundColor: '#FFFFFF', color: '#374151'}}
           placeholder="Search for places (Transilvania, Paris cafes)"
         />
         
@@ -202,7 +202,7 @@ export default function PlaceSearch({ onPlaceSelect, selectedPlace }: PlaceSearc
       {/* Status messages */}
       
       {isLoading && (
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-gray-700 mt-1">
           Searching for places...
         </p>
       )}
@@ -219,7 +219,7 @@ export default function PlaceSearch({ onPlaceSelect, selectedPlace }: PlaceSearc
               <span className="text-sm font-medium text-gray-700">
                 Found {places.length} places
               </span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-700">
                 Click to select
               </span>
             </div>
@@ -228,16 +228,16 @@ export default function PlaceSearch({ onPlaceSelect, selectedPlace }: PlaceSearc
             <div
               key={index}
               onClick={() => handlePlaceSelect(place)}
-              className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
+              className="px-4 h-12 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors flex items-center"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2 mb-2">
                     <span className="font-semibold text-gray-900 truncate">{place.name}</span>
-                    <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full whitespace-nowrap">
+                    <span className="inline-flex items-center h-7 px-2 text-xs bg-blue-100 text-blue-700 rounded-full whitespace-nowrap">
                       {place.type}
                     </span>
-                    <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full whitespace-nowrap">
+                    <span className="inline-flex items-center h-7 px-2 text-xs bg-gray-100 text-gray-600 rounded-full whitespace-nowrap">
                       {place.country}
                     </span>
                   </div>
@@ -247,13 +247,13 @@ export default function PlaceSearch({ onPlaceSelect, selectedPlace }: PlaceSearc
                       {place.highlights.slice(0, 4).map((highlight, idx) => (
                         <span
                           key={idx}
-                          className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full"
+                          className="inline-flex items-center h-7 px-2 text-xs bg-green-100 text-green-700 rounded-full"
                         >
                           {highlight}
                         </span>
                       ))}
                       {place.highlights.length > 4 && (
-                        <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                        <span className="inline-flex items-center h-7 px-2 text-xs bg-gray-100 text-gray-600 rounded-full">
                           +{place.highlights.length - 4} more
                         </span>
                       )}
@@ -264,7 +264,7 @@ export default function PlaceSearch({ onPlaceSelect, selectedPlace }: PlaceSearc
                       {place.categories.map((category, idx) => (
                         <span
                           key={idx}
-                          className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full"
+                          className="inline-flex items-center h-7 px-2 text-xs bg-purple-100 text-purple-700 rounded-full"
                         >
                           {category}
                         </span>
@@ -281,7 +281,7 @@ export default function PlaceSearch({ onPlaceSelect, selectedPlace }: PlaceSearc
       {/* No results message */}
       {isOpen && searchQuery && !isLoading && places.length === 0 && !error && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-border rounded-lg shadow-lg p-4">
-          <p className="text-gray-500 text-center">No places found. Try a different search term.</p>
+          <p className="text-gray-700 text-center">No places found. Try a different search term.</p>
         </div>
       )}
     </div>

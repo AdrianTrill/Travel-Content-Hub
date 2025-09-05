@@ -10,10 +10,10 @@ export default function EventsCard({ events }: EventsCardProps) {
   
   return (
     <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6 h-full flex flex-col">
-      <div className="section-title mb-4">
+      <h2 className="section-title mb-4">
         <CalendarDaysIcon className="h-5 w-5 text-primary" />
         <span>Featured Events</span>
-      </div>
+      </h2>
       
       {!hasEvents ? (
         <div className="bg-white border border-gray-border rounded-lg p-6 text-center transition-opacity duration-300 ease-out flex-1 flex items-center justify-center" style={{backgroundColor: '#F8F9F9'}}>
@@ -26,7 +26,7 @@ export default function EventsCard({ events }: EventsCardProps) {
             {events.map((event) => (
               <div key={event.name} className="bg-white border border-gray-border rounded-lg p-4 shadow-sm transition-all duration-300 ease-out opacity-0 animate-[fadeIn_0.3s_ease-out_forwards]" style={{backgroundColor: '#F8F9F9'}}>
                 <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-semibold" style={{color: '#340B37'}}>{event.name}</h4>
+                  <h3 className="font-semibold" style={{color: '#340B37'}}>{event.name}</h3>
                   <span className="pill-badge bg-warning" style={{color: '#340B37'}}>{event.category}</span>
                 </div>
                 <div className="space-y-1">
