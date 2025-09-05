@@ -24,10 +24,10 @@ export default function LandmarksCard({ landmarks }: LandmarksCardProps) {
 
   return (
     <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-6 h-full flex flex-col">
-      <div className="section-title mb-4">
+      <h2 className="section-title mb-4">
         <StarIcon className="h-5 w-5 text-primary" />
         <span>Historical Landmarks</span>
-      </div>
+      </h2>
       
       {!hasLandmarks ? (
         <div className="bg-white border border-gray-border rounded-lg p-6 text-center transition-opacity duration-300 ease-out flex-1 flex items-center justify-center" style={{backgroundColor: '#F8F9F9'}}>
@@ -40,7 +40,7 @@ export default function LandmarksCard({ landmarks }: LandmarksCardProps) {
             {landmarks.map((l, index) => (
               <div key={l.name} className="bg-white border border-gray-border rounded-lg p-4 shadow-sm transition-all duration-300 ease-out opacity-0" style={{backgroundColor: '#F8F9F9', animation: `fadeIn 0.3s ease-out forwards`, animationDelay: `${index * 60}ms`}}>
                 <div className="flex items-start justify-between">
-                  <h4 className="font-semibold" style={{color: '#340B37'}}>{l.name}</h4>
+                  <h3 className="font-semibold" style={{color: '#340B37'}}>{l.name}</h3>
                   <Stars rating={l.rating} />
                 </div>
                 <div className="mt-2 space-y-1">

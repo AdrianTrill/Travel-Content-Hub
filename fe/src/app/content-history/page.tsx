@@ -7,6 +7,7 @@ import { QuickStat } from '../types';
 import { MagnifyingGlassIcon, FunnelIcon, EyeIcon, PencilIcon, ArrowDownTrayIcon, TrashIcon } from '@heroicons/react/24/outline';
 import AnimatedContainer from '../dashboard/components/AnimatedContainer';
 import AnimatedCounter from '../dashboard/components/AnimatedCounter';
+import { getContentTypeIcon } from '../utils/contentTypeIcons';
 
 interface PublishedItem {
   id: string;
@@ -347,8 +348,15 @@ export default function ContentHistory() {
       <div className="flex flex-col md:flex-row relative">
         {toast && (
           <div className="fixed top-4 right-4 z-50">
-            <div className="px-4 py-2 rounded-lg shadow-md text-white" style={{backgroundColor:'#0F612D'}}>
-              {toast}
+            <div className="flex items-stretch rounded-lg shadow-md overflow-hidden" style={{backgroundColor:'#DEF5E6', color:'#0F612D'}}>
+              <div className="w-2" style={{backgroundColor:'#0F612D'}}></div>
+              <div className="flex items-center gap-3 px-4 py-3">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" />
+                </svg>
+                <span className="font-medium">{toast}</span>
+              </div>
             </div>
           </div>
         )}
@@ -361,22 +369,22 @@ export default function ContentHistory() {
           {/* Filters & Search Section */}
           <AnimatedContainer direction="up" delay={0.2} trigger="immediate">
             <div className="bg-[#FBF8F4] border border-[#DAE1E9] rounded-xl p-4 md:p-6 mb-4 md:mb-6">
-            <div className="flex items-center space-x-2 mb-4">
-              <FunnelIcon className="h-5 w-5" style={{color: '#6E2168'}} />
-              <h2 className="text-lg font-semibold" style={{color: '#340B37'}}>Filters & Search</h2>
-            </div>
+            <h2 className="section-title mb-4">
+              <FunnelIcon className="h-5 w-5 text-primary" />
+              <span>Filters & Search</span>
+            </h2>
             <div className="flex flex-col lg:flex-row gap-4">
               {/* Search Bar */}
               <div className="flex-1">
                 <div className="relative">
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{color: '#545D6B'}} />
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{color: '#374151'}} />
                   <input
                     type="text"
                     placeholder="Search content..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                    className="w-full h-12 pl-10 pr-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                   />
                 </div>
               </div>
@@ -387,8 +395,8 @@ export default function ContentHistory() {
                   <select
                     value={selectedLocation}
                     onChange={(e) => setSelectedLocation(e.target.value)}
-                    className="px-3 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none pr-8"
-                    style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                    className="h-12 px-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none pr-8"
+                    style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                   >
                     <option>All Locations</option>
                       {/* Populate common locations from items */}
@@ -396,7 +404,7 @@ export default function ContentHistory() {
                         <option key={idx}>{loc}</option>
                       ))}
                   </select>
-                  <svg className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                  <svg className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -405,15 +413,15 @@ export default function ContentHistory() {
                   <select
                     value={selectedTheme}
                     onChange={(e) => setSelectedTheme(e.target.value)}
-                    className="px-3 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none pr-8"
-                    style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                    className="h-12 px-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none pr-8"
+                    style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                   >
                     <option>All Themes</option>
                     {Array.from(new Set(items.flatMap(i => i.tags))).map((theme, idx) => (
                       <option key={idx}>{theme}</option>
                     ))}
                   </select>
-                  <svg className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                  <svg className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -422,15 +430,15 @@ export default function ContentHistory() {
                   <select
                     value={selectedType}
                     onChange={(e) => setSelectedType(e.target.value)}
-                    className="px-3 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none pr-8"
-                    style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                    className="h-12 px-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none pr-8"
+                    style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                   >
                     <option>All Types</option>
                       {Array.from(new Set(items.map(i => i.type))).map((t, idx) => (
                         <option key={idx}>{t}</option>
                       ))}
                   </select>
-                  <svg className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                  <svg className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -439,13 +447,13 @@ export default function ContentHistory() {
                   <select
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="px-3 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none pr-8"
-                    style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                    className="h-12 px-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none pr-8"
+                    style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                   >
                     <option>All Status</option>
                     <option>Published</option>
                   </select>
-                  <svg className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                  <svg className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -457,13 +465,13 @@ export default function ContentHistory() {
           {/* Content History List */}
           <div className="space-y-4">
             {loading && (
-              <div className="text-sm text-gray-500">Loading...</div>
+              <div className="text-sm text-gray-700">Loading...</div>
             )}
             {error && (
               <div className="text-sm text-red-600">{error}</div>
             )}
             {!loading && filtered.length === 0 && (
-              <div className="text-sm text-gray-500">No content yet. Publish from Content Generation.</div>
+              <div className="text-sm text-gray-700">No content yet. Publish from Content Generation.</div>
             )}
             {filtered.map((content, index) => (
               <AnimatedContainer key={content.id} direction="up" delay={0.3 + index * 0.1} trigger="immediate">
@@ -471,31 +479,29 @@ export default function ContentHistory() {
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
                   {/* Left side - Content Type Label */}
                   <div className="flex items-center space-x-3">
-                      <div className="flex items-center space-x-2 px-2 py-1 rounded-full border" style={{backgroundColor: '#F7F1E9', borderColor: '#DAE1E9'}}>
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#6E2168'}}>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
+                      <div className="inline-flex items-center h-7 px-2 rounded-full border" style={{backgroundColor: '#F7F1E9', borderColor: '#DAE1E9'}}>
+                        {getContentTypeIcon(content.type, "h-4 w-4", {color: '#6E2168'})}
                       <span className="text-sm font-medium" style={{color: '#340B37'}}>{content.type}</span>
                     </div>
                   </div>
                   
                   {/* Right side - Metadata */}
-                  <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm" style={{color: '#545D6B'}}>
+                  <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm" style={{color: '#374151'}}>
                     <div className="flex items-center space-x-1">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                       <span>{content.location}</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                       <span>{content.date}</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <span>{content.time}</span>
@@ -508,7 +514,7 @@ export default function ContentHistory() {
                   <h3 className="text-lg md:text-xl font-semibold" style={{color: '#340B37'}}>
                     {content.title}
                   </h3>
-                    <span className={`px-2 py-1 rounded-full text-sm font-medium ${content.statusColor || 'text-white'}`} style={{backgroundColor: content.statusBg || '#0F612D'}}>
+                    <span className={`inline-flex items-center h-7 px-2 rounded-full text-sm font-medium ${content.statusColor || 'text-white'}`} style={{backgroundColor: content.statusBg || '#0F612D'}}>
                     {content.status}
                   </span>
                 </div>
@@ -521,40 +527,40 @@ export default function ContentHistory() {
                         <span className="text-lg font-bold" style={{color: '#340B37'}}>
                           <AnimatedCounter value={content.views.toString()} duration={2} trigger="immediate" />
                         </span>
-                      <span className="text-sm" style={{color: '#545D6B'}}>Views</span>
+                      <span className="text-sm" style={{color: '#374151'}}>Views</span>
                     </div>
                   </div>
                   <div className="flex items-center space-x-1">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                     </svg>
                     <div className="flex flex-col">
                         <span className="text-lg font-bold" style={{color: '#340B37'}}>
                           <AnimatedCounter value={content.shares.toString()} duration={2} trigger="immediate" />
                         </span>
-                      <span className="text-sm" style={{color: '#545D6B'}}>Shares</span>
+                      <span className="text-sm" style={{color: '#374151'}}>Shares</span>
                     </div>
                   </div>
                   <div className="flex items-center space-x-1">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.850.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.38-3.081 1.1-4.451.197-.403.526-.75.923-1.01.397-.26.854-.398 1.323-.398h.908c.889 0 1.713.518 1.972 1.368.141.55.22 1.113.22 1.676 0 .563-.079 1.126-.22 1.676z" />
                     </svg>
                     <div className="flex flex-col">
                         <span className="text-lg font-bold" style={{color: '#0F612D'}}>
                           <AnimatedCounter value={`${content.engagement_rate}%`} duration={2} trigger="immediate" />
                         </span>
-                      <span className="text-sm" style={{color: '#545D6B'}}>Engagement</span>
+                      <span className="text-sm" style={{color: '#374151'}}>Engagement</span>
                     </div>
                   </div>
                   <div className="flex items-center space-x-1">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                     <div className="flex flex-col">
                         <span className="text-lg font-bold" style={{color: '#0F612D'}}>
                           <AnimatedCounter value={`+${content.growth_rate}%`} duration={2} trigger="immediate" />
                         </span>
-                      <span className="text-sm" style={{color: '#545D6B'}}>Growth</span>
+                      <span className="text-sm" style={{color: '#374151'}}>Growth</span>
                       </div>
                   </div>
                 </div>
@@ -564,7 +570,7 @@ export default function ContentHistory() {
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2">
                     {content.tags.map((tag, index) => (
-                      <span key={index} className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: '#340B37'}}>
+                      <span key={index} className="inline-flex items-center h-7 px-2 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: '#340B37'}}>
                         {tag}
                       </span>
                     ))}
@@ -577,7 +583,7 @@ export default function ContentHistory() {
                           await handleView(content.id);
                           setViewModal({ open: true, item: content });
                         }}
-                        className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
+                        className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
                         style={{backgroundColor: '#F7F1E9', borderColor: '#6E2168', color: '#6E2168'}}
                       >
                       <EyeIcon className="h-3 w-3" style={{color: '#6E2168'}} />
@@ -585,7 +591,7 @@ export default function ContentHistory() {
                     </button>
                       <button 
                         onClick={() => setEditModal({ open: true, item: content })}
-                        className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
+                        className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
                         style={{backgroundColor: '#F7F1E9', borderColor: '#6E2168', color: '#6E2168'}}
                       >
                       <PencilIcon className="h-3 w-3" style={{color: '#6E2168'}} />
@@ -593,7 +599,7 @@ export default function ContentHistory() {
                     </button>
                       <button 
                         onClick={() => setShareModal({ open: true, item: content })}
-                        className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
+                        className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
                         style={{backgroundColor: '#F7F1E9', borderColor: '#6E2168', color: '#6E2168'}}
                       >
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#6E2168'}}>
@@ -601,13 +607,13 @@ export default function ContentHistory() {
                         </svg>
                         <span>Share</span>
                     </button>
-                    <button className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#6E2168', color: '#6E2168'}}>
+                    <button className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#6E2168', color: '#6E2168'}}>
                       <ArrowDownTrayIcon className="h-3 w-3" style={{color: '#6E2168'}} />
                       <span>Export</span>
                     </button>
                       <button 
                         onClick={() => setDeleteModal({ open: true, item: content })}
-                        className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
+                        className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
                         style={{backgroundColor: '#F7F1E9', borderColor: '#6E2168', color: '#6E2168'}}
                       >
                         <TrashIcon className="h-3 w-3" style={{color: '#6E2168'}} />
@@ -655,34 +661,32 @@ export default function ContentHistory() {
                 <div className="space-y-4">
                   {/* Content Type and Status */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 px-2 py-1 rounded-full border" style={{backgroundColor: '#F7F1E9', borderColor: '#DAE1E9'}}>
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#6E2168'}}>
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
+                    <div className="inline-flex items-center h-7 px-2 rounded-full border" style={{backgroundColor: '#F7F1E9', borderColor: '#DAE1E9'}}>
+                      {getContentTypeIcon(viewModal.item.type, "h-4 w-4", {color: '#6E2168'})}
                       <span className="text-sm font-medium" style={{color: '#340B37'}}>{viewModal.item.type}</span>
             </div>
-                    <span className={`px-2 py-1 rounded-full text-sm font-medium ${viewModal.item.statusColor || 'text-white'}`} style={{backgroundColor: viewModal.item.statusBg || '#0F612D'}}>
+                    <span className={`inline-flex items-center h-7 px-2 rounded-full text-sm font-medium ${viewModal.item.statusColor || 'text-white'}`} style={{backgroundColor: viewModal.item.statusBg || '#0F612D'}}>
                       {viewModal.item.status}
                     </span>
                   </div>
 
                   {/* Metadata */}
-                  <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm" style={{color: '#545D6B'}}>
+                  <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm" style={{color: '#374151'}}>
                     <div className="flex items-center space-x-1">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                       <span>{viewModal.item.location}</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                       <span>{viewModal.item.date}</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <span>{viewModal.item.time}</span>
@@ -693,7 +697,7 @@ export default function ContentHistory() {
                   {viewModal.item.tags && viewModal.item.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {viewModal.item.tags.map((tag, index) => (
-                        <span key={index} className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: '#340B37'}}>
+                        <span key={index} className="inline-flex items-center h-7 px-2 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: '#340B37'}}>
                           {tag}
                         </span>
                       ))}
@@ -713,7 +717,7 @@ export default function ContentHistory() {
             <div className="flex items-center justify-end px-6 pb-6 space-x-3">
               <button 
                 onClick={() => setViewModal({ open: false, item: null })}
-                className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
+                className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
                 style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
               >
                 <span>Close</span>
@@ -723,7 +727,7 @@ export default function ContentHistory() {
                   setViewModal({ open: false, item: null });
                   setEditModal({ open: true, item: viewModal.item });
                 }}
-                className="px-3 py-2 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-1" 
+                className="h-12 px-3 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-1" 
                 style={{backgroundColor: '#6E2168', color: '#FFFFFF'}}
               >
                 <PencilIcon className="h-3 w-3" />
@@ -775,7 +779,7 @@ export default function ContentHistory() {
                   value={editModal.item.title}
                   onChange={(e) => setEditModal(prev => ({ ...prev, item: prev.item ? { ...prev.item, title: e.target.value } : null }))}
                       className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                      style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                      style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                 />
               </div>
 
@@ -789,7 +793,7 @@ export default function ContentHistory() {
                   onChange={(e) => setEditModal(prev => ({ ...prev, item: prev.item ? { ...prev.item, content: e.target.value } : null }))}
                       rows={8}
                       className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                      style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                      style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                 />
               </div>
 
@@ -832,14 +836,14 @@ export default function ContentHistory() {
                         }
                       }}
                       className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                      style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                      style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                       placeholder="nature, culture, food, adventure"
                     />
                     {/* Show tags as visual feedback */}
                     {editModal.item.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {editModal.item.tags.map((tag, index) => (
-                          <span key={index} className="px-2 py-1 text-xs rounded-full text-white" style={{backgroundColor: '#6E2168'}}>
+                          <span key={index} className="inline-flex items-center h-7 px-2 text-xs rounded-full text-white" style={{backgroundColor: '#6E2168'}}>
                             {tag}
                           </span>
                         ))}
@@ -853,85 +857,68 @@ export default function ContentHistory() {
                       <label className="block text-sm font-medium mb-2" style={{color: '#340B37'}}>
                         Content Type
                       </label>
-                      <div className="relative">
-                        <select
-                          value={editModal.item.type}
-                          onChange={(e) => setEditModal(prev => ({ 
-                            ...prev, 
-                            item: prev.item ? { ...prev.item, type: e.target.value } : null 
-                          }))}
-                          className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none pr-8"
-                          style={{backgroundColor: '#F7F1E9', color: 'transparent'}}
-                        >
-                          <option value="Instagram Post">Instagram Post</option>
-                          <option value="Facebook Post">Facebook Post</option>
-                          <option value="Blog Post">Blog Post</option>
-                        </select>
-                        <div className="absolute inset-0 pointer-events-none flex items-center px-4">
-                          <div className="flex items-center space-x-2">
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#6E2168'}}>
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            <span className="text-sm font-medium" style={{color: '#340B37'}}>{editModal.item.type}</span>
-                          </div>
-                        </div>
-                      </div>
+                      <select
+                        value={editModal.item.type}
+                        onChange={(e) => setEditModal(prev => ({ 
+                          ...prev, 
+                          item: prev.item ? { ...prev.item, type: e.target.value } : null 
+                        }))}
+                        className="w-full h-12 px-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none pr-8"
+                        style={{backgroundColor: '#FFFFFF', color: '#374151'}}
+                      >
+                        <option value="Instagram Post">Instagram Post</option>
+                        <option value="Facebook Post">Facebook Post</option>
+                        <option value="Blog Post">Blog Post</option>
+                      </select>
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium mb-2" style={{color: '#340B37'}}>
                         Status
                       </label>
-                      <div className="relative">
-                        <select
-                          value={editModal.item.status}
-                          onChange={(e) => setEditModal(prev => ({ 
-                            ...prev, 
-                            item: prev.item ? { 
-                              ...prev.item, 
-                              status: e.target.value,
-                              statusColor: e.target.value === 'Published' ? 'text-white' : 'text-black',
-                              statusBg: e.target.value === 'Published' ? '#0F612D' : '#FFC938'
-                            } : null 
-                          }))}
-                          className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none pr-8"
-                          style={{backgroundColor: '#F7F1E9', color: 'transparent'}}
-                        >
-                          <option value="Published">Published</option>
-                          <option value="Draft">Draft</option>
-                          <option value="Scheduled">Scheduled</option>
-                          <option value="Archived">Archived</option>
-                        </select>
-                        <div className="absolute inset-0 pointer-events-none flex items-center px-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${editModal.item.statusColor || 'text-white'}`} style={{backgroundColor: editModal.item.statusBg || '#0F612D'}}>
-                            {editModal.item.status}
-                          </span>
-                        </div>
-                      </div>
+                      <select
+                        value={editModal.item.status}
+                        onChange={(e) => setEditModal(prev => ({ 
+                          ...prev, 
+                          item: prev.item ? { 
+                            ...prev.item, 
+                            status: e.target.value,
+                            statusColor: e.target.value === 'Published' ? 'text-white' : 'text-black',
+                            statusBg: e.target.value === 'Published' ? '#0F612D' : '#FFC938'
+                          } : null 
+                        }))}
+                        className="w-full h-12 px-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none pr-8"
+                        style={{backgroundColor: '#FFFFFF', color: '#374151'}}
+                      >
+                        <option value="Published">Published</option>
+                        <option value="Draft">Draft</option>
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Archived">Archived</option>
+                      </select>
                     </div>
                   </div>
 
-                  {/* Metadata Display */}
+                  {/* Details Display */}
                   <div>
                     <label className="block text-sm font-medium mb-2" style={{color: '#340B37'}}>
-                      Metadata
+                      Details
                     </label>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-lg border" style={{backgroundColor: '#F8F9F9', borderColor: '#DAE1E9'}}>
                       <div className="flex items-center space-x-2">
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         <span className="text-sm" style={{color: '#545D6B'}}>{editModal.item.location}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <span className="text-sm" style={{color: '#545D6B'}}>{editModal.item.date}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#545D6B'}}>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span className="text-sm" style={{color: '#545D6B'}}>{editModal.item.time}</span>
@@ -946,7 +933,7 @@ export default function ContentHistory() {
             <div className="flex items-center justify-end px-6 pb-6 space-x-3">
                 <button
                   onClick={() => setEditModal({ open: false, item: null })}
-                className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1"
+                className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1"
                 style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
                 >
                 <span>Cancel</span>
@@ -998,7 +985,7 @@ export default function ContentHistory() {
                       alert('Failed to update content. Please try again.');
                     }
                   }}
-                className="px-3 py-2 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-1"
+                className="h-12 px-3 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-1"
                 style={{backgroundColor: '#6E2168', color: '#FFFFFF'}}
                 >
                 <span>Save Changes</span>
@@ -1057,7 +1044,7 @@ export default function ContentHistory() {
                       {shareModal.item.tags && shareModal.item.tags.length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-3">
                           {shareModal.item.tags.slice(0, 3).map((tag, index) => (
-                            <span key={index} className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: '#340B37'}}>
+                            <span key={index} className="inline-flex items-center h-7 px-2 text-xs rounded-full" style={{backgroundColor: '#FFB066', color: '#340B37'}}>
                               {tag}
                             </span>
                           ))}
@@ -1202,7 +1189,7 @@ export default function ContentHistory() {
             <div className="flex items-center justify-end px-6 pb-6 space-x-3">
               <button
                 onClick={() => setShareModal({ open: false, item: null })}
-                className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1"
+                className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1"
                 style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
               >
                 <span>Close</span>
@@ -1232,8 +1219,8 @@ export default function ContentHistory() {
               <p className="text-sm" style={{color:'#545D6B'}}>Are you sure you want to delete "{deleteModal.item.title}"? This action cannot be undone.</p>
             </div>
             <div className="flex items-center justify-end px-6 pb-6 space-x-3">
-              <button onClick={() => setDeleteModal({ open: false, item: null })} className="px-3 py-2 border rounded text-sm hover:bg-gray-50" style={{backgroundColor:'#F7F1E9', borderColor:'#340B37', color:'#340B37'}}>Cancel</button>
-              <button onClick={() => handleDelete(deleteModal.item!.id)} className="px-3 py-2 rounded text-sm hover:opacity-90 transition-opacity" style={{backgroundColor:'#6E2168', color:'#FFFFFF'}}>Delete</button>
+              <button onClick={() => setDeleteModal({ open: false, item: null })} className="h-12 px-3 border rounded text-sm hover:bg-gray-50" style={{backgroundColor:'#F7F1E9', borderColor:'#340B37', color:'#340B37'}}>Cancel</button>
+              <button onClick={() => handleDelete(deleteModal.item!.id)} className="h-12 px-3 rounded text-sm hover:opacity-90 transition-opacity" style={{backgroundColor:'#6E2168', color:'#FFFFFF'}}>Delete</button>
             </div>
           </div>
         </div>

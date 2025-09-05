@@ -16,19 +16,21 @@ export default function SettingsTabs({ activeTab, onTabChange }: SettingsTabsPro
 
   return (
     <AnimatedContainer direction="up" delay={0.1}>
-      <div className="mb-6 sm:mb-8 w-full max-w-full overflow-x-auto">
-        <nav className="flex w-max min-w-full gap-2 pr-2">
+      <div className="mb-6 sm:mb-8 w-full max-w-full">
+        <nav className="grid grid-cols-4 gap-2 items-center" style={{backgroundColor:'#F8F9F9', padding:'5px', borderRadius:'10px', border:'1px solid #C8C8C8'}}>
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`flex items-center justify-center space-x-2 py-1.5 sm:py-2 px-4 sm:px-6 rounded-lg font-medium text-sm transition-colors whitespace-nowrap flex-1 ${
-                  isActive
-                    ? 'bg-[#6E2168] text-white'
-                    : 'bg-[#F8F9F9] text-[#545D6B] hover:text-[#340B37]'
+                className={`w-full flex items-center justify-center space-x-2 py-1.5 sm:py-2 px-4 sm:px-6 rounded-lg font-medium text-sm transition-colors whitespace-nowrap ${
+                  isActive ? 'text-white' : ''
                 }`}
+                style={{
+                  backgroundColor: isActive ? '#6E2168' : '#F8F9F9',
+                  color: isActive ? '#FFFFFF' : '#374151'
+                }}
               >
                 <tab.icon className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span>{tab.name}</span>

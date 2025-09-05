@@ -220,8 +220,8 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                 type="text"
                 value={editedTitle}
                 onChange={(e) => setEditedTitle(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                className="w-full h-12 px-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                style={{backgroundColor: '#FFFFFF', color: '#374151'}}
               />
             </div>
 
@@ -234,8 +234,8 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                 value={editedContent}
                 onChange={(e) => setEditedContent(e.target.value)}
                 rows={8}
-                className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                className="w-full h-12 px-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                style={{backgroundColor: '#FFFFFF', color: '#374151'}}
               />
             </div>
 
@@ -268,15 +268,15 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                     e.currentTarget.blur();
                   }
                 }}
-                className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                className="w-full h-12 px-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                 placeholder="nature, culture, food, adventure"
               />
               {/* Show tags as visual feedback */}
               {editedTags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
+                <div className="flex flex-wrap gap-1.5 mt-2">
                   {editedTags.map((tag, index) => (
-                    <span key={index} className="px-2 py-1 text-xs rounded-full text-white" style={{backgroundColor: '#6E2168'}}>
+                    <span key={index} className="inline-flex items-center h-7 px-2 text-xs rounded-full text-white" style={{backgroundColor: '#6E2168'}}>
                       {tag}
                     </span>
                   ))}
@@ -313,15 +313,15 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                     e.currentTarget.blur();
                   }
                 }}
-                className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                className="w-full h-12 px-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                 placeholder="beautiful views, local cuisine, historic sites"
               />
               {/* Show highlights as visual feedback */}
               {editedHighlights.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
+                <div className="flex flex-wrap gap-1.5 mt-2">
                   {editedHighlights.map((highlight, index) => (
-                    <span key={index} className="px-2 py-1 text-xs rounded-full text-white" style={{backgroundColor: '#6E2168'}}>
+                    <span key={index} className="inline-flex items-center h-7 px-2 text-xs rounded-full text-white" style={{backgroundColor: '#6E2168'}}>
                       {highlight}
                     </span>
                   ))}
@@ -329,94 +329,6 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
               )}
             </div>
 
-            {/* Neighborhoods Field */}
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{color: '#340B37'}}>
-                Neighborhoods/Areas
-              </label>
-              <input
-                type="text"
-                value={editedNeighborhoods.join(', ')}
-                onChange={(e) => {
-                  const input = e.target.value;
-                  // Don't split immediately - let user type naturally
-                  setEditedNeighborhoods([input]);
-                }}
-                onBlur={(e) => {
-                  const input = e.target.value;
-                  // Only split on commas, not on spaces
-                  const neighborhoods = input.split(',').filter(neighborhood => neighborhood.trim()).map(neighborhood => neighborhood.trim());
-                  setEditedNeighborhoods(neighborhoods);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const input = e.currentTarget.value;
-                    // Only split on commas, not on spaces
-                    const neighborhoods = input.split(',').filter(neighborhood => neighborhood.trim()).map(neighborhood => neighborhood.trim());
-                    setEditedNeighborhoods(neighborhoods);
-                  }
-                }}
-                className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
-                placeholder="old town, city center, waterfront"
-              />
-              {/* Show neighborhoods as visual feedback */}
-              {editedNeighborhoods.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {editedNeighborhoods.map((neighborhood, index) => (
-                    <span key={index} className="px-2 py-1 text-xs rounded-full text-white" style={{backgroundColor: '#6E2168'}}>
-                      {neighborhood}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Recommended Spots Field */}
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{color: '#340B37'}}>
-                Recommended Spots
-              </label>
-              <input
-                type="text"
-                value={editedRecommendedSpots.join(', ')}
-                onChange={(e) => {
-                  const input = e.target.value;
-                  // Don't split immediately - let user type naturally
-                  setEditedRecommendedSpots([input]);
-                }}
-                onBlur={(e) => {
-                  const input = e.target.value;
-                  // Only split on commas, not on spaces
-                  const spots = input.split(',').filter(spot => spot.trim()).map(spot => spot.trim());
-                  setEditedRecommendedSpots(spots);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const input = e.currentTarget.value;
-                    // Only split on commas, not on spaces
-                    const spots = input.split(',').filter(spot => spot.trim()).map(spot => spot.trim());
-                    setEditedRecommendedSpots(spots);
-                    e.currentTarget.blur();
-                  }
-                }}
-                className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
-                placeholder="main square, museum, park"
-              />
-              {/* Show spots as visual feedback */}
-              {editedRecommendedSpots.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {editedRecommendedSpots.map((spot, index) => (
-                    <span key={index} className="px-2 py-1 text-xs rounded-full text-white" style={{backgroundColor: '#6E2168'}}>
-                      {spot}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
 
             {/* Additional Info Fields */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -428,8 +340,8 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                   type="text"
                   value={editedPriceRange}
                   onChange={(e) => setEditedPriceRange(validatePriceInput(e.target.value))}
-                  className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                  className="w-full h-12 px-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                   placeholder="Free, Budget-friendly, £5-£20"
                 />
               </div>
@@ -442,8 +354,8 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                   type="text"
                   value={editedBestTimes}
                   onChange={(e) => setEditedBestTimes(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                  className="w-full h-12 px-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                   placeholder="summer, morning"
                 />
               </div>
@@ -456,8 +368,8 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                   type="text"
                   value={editedCautions}
                   onChange={(e) => setEditedCautions(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                  className="w-full h-12 px-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                   placeholder="prepare for weather, crowdy"
                 />
               </div>
@@ -486,12 +398,12 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                   Publish Date
                 </label>
                 <div className="relative">
-                  <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{color: '#545D6B'}} />
+                  <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{color: '#374151'}} />
                   <input
                     type="text"
                     placeholder="dd----yyyy"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                    className="w-full h-12 pl-10 pr-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                   />
                 </div>
               </div>
@@ -502,12 +414,12 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                   Publish Time
                 </label>
                 <div className="relative">
-                  <ClockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{color: '#545D6B'}} />
+                  <ClockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{color: '#374151'}} />
                   <input
                     type="text"
                     placeholder="--:--"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                    className="w-full h-12 pl-10 pr-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                   />
                 </div>
               </div>
@@ -528,10 +440,10 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                 onChange={(e) => setCustomPrompt(e.target.value)}
                 placeholder="Write your custom prompt for the AI. For example: 'Write a blog post about hidden cafes in this city that locals love, with specific recommendations and insider tips'"
                 rows={6}
-                className="w-full px-4 py-3 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                style={{backgroundColor: '#FFFFFF', color: '#545D6B'}}
+                className="w-full h-12 px-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                style={{backgroundColor: '#FFFFFF', color: '#374151'}}
               />
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-gray-700 mt-2">
                 Be specific about what you want the AI to generate. Include style, tone, focus areas, and any specific requirements.
               </p>
             </div>
@@ -541,7 +453,7 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
               <button
                 onClick={generateCustomContent}
                 disabled={customPromptLoading || !customPrompt.trim() || !destination}
-                className="px-6 py-3 rounded-lg text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                className="h-12 px-6 rounded-lg text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                 style={{backgroundColor: '#6E2168'}}
               >
                 {customPromptLoading ? (
@@ -573,7 +485,7 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
               <div className="border border-gray-border rounded-lg p-6" style={{backgroundColor: '#FFFFFF'}}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold" style={{color: '#340B37'}}>AI Generated Content</h3>
-                  <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                  <div className="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded">
                     Generated from: "{generatedContent.generated_from_prompt}"
                   </div>
                 </div>
@@ -583,14 +495,14 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                     <label className="block text-sm font-medium mb-2" style={{color: '#340B37'}}>
                       Title
                     </label>
-                    <p className="text-lg font-medium" style={{color: '#545D6B'}}>{generatedContent.title}</p>
+                    <p className="text-lg font-medium" style={{color: '#374151'}}>{generatedContent.title}</p>
                   </div>
                   
                   <div>
                     <label className="block text-sm font-medium mb-2" style={{color: '#340B37'}}>
                       Content
                     </label>
-                    <p className="text-sm leading-relaxed" style={{color: '#545D6B'}}>{generatedContent.content}</p>
+                    <p className="text-sm leading-relaxed" style={{color: '#374151'}}>{generatedContent.content}</p>
                   </div>
 
                   {generatedContent.highlights && generatedContent.highlights.length > 0 && (
@@ -617,7 +529,7 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                   <button
                     onClick={regenerateCustomContent}
                     disabled={customPromptLoading}
-                    className="px-4 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="h-12 px-4 border rounded text-sm hover:bg-gray-50 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
                   >
                     <SparklesIcon className="h-4 w-4" />
@@ -625,7 +537,7 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                   </button>
                   <button
                     onClick={approveGeneratedContent}
-                    className="px-4 py-2 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-2"
+                    className="h-12 px-4 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-2"
                     style={{backgroundColor: '#6E2168', color: '#FFFFFF'}}
                   >
                     <HandThumbUpIcon className="h-4 w-4" />
@@ -648,7 +560,7 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
         <div className="flex items-center justify-end px-6 pb-6 space-x-3">
           <button 
             onClick={handleSave}
-            className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
+            className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
             style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
           >
             <HandThumbUpIcon className="h-3 w-3" style={{color: '#340B37'}} />
@@ -657,7 +569,7 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
           <button 
             onClick={() => onRegenerate && onRegenerate(content)}
             disabled={loading}
-            className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed" 
+            className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed" 
             style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
           >
             {loading && (
@@ -671,7 +583,7 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
           </button>
           <button 
             onClick={() => setActiveTab('preview')}
-            className="px-3 py-2 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-1" 
+            className="h-12 px-3 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-1" 
             style={{backgroundColor: '#6E2168', color: '#FFFFFF'}}
           >
             <span>Next</span>
@@ -684,7 +596,7 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
         <div className="flex items-center justify-between px-6 pb-6">
           <button 
             onClick={() => setActiveTab('content')}
-            className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
+            className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
             style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
           >
             <ChevronLeftIcon className="h-3 w-3" style={{color: '#340B37'}} />
@@ -692,7 +604,7 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
           </button>
           <button 
             onClick={() => setActiveTab('schedule')}
-            className="px-3 py-2 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-1" 
+            className="h-12 px-3 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-1" 
             style={{backgroundColor: '#6E2168', color: '#FFFFFF'}}
           >
             <span>Next</span>
@@ -705,20 +617,20 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
         <div className="flex items-center justify-between px-6 pb-6 space-x-3">
           <button 
             onClick={() => setActiveTab('preview')}
-            className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
+            className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" 
             style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}
           >
             <ChevronLeftIcon className="h-3 w-3" style={{color: '#340B37'}} />
             <span>Previous</span>
           </button>
           <div className="flex space-x-3">
-            <button className="px-3 py-2 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
+            <button className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
               <ClockIcon className="h-3 w-3" style={{color: '#340B37'}} />
               <span>Schedule Post</span>
             </button>
             <button 
               onClick={handleSave}
-              className="px-3 py-2 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-1" 
+              className="h-12 px-3 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-1" 
               style={{backgroundColor: '#6E2168', color: '#FFFFFF'}}
             >
               <span>Next</span>
@@ -732,7 +644,7 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="rounded-xl shadow-2xl w-full max-w-4xl mx-4 max-h-[95vh] overflow-hidden" style={{backgroundColor: '#F7F1E9'}}>
+              <div className="rounded-xl shadow-2xl w-full max-w-4xl mx-4 h-[720px] overflow-hidden flex flex-col" style={{backgroundColor: '#F7F1E9'}}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-border">
           <div className="flex items-center space-x-3">
@@ -749,75 +661,62 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex flex-wrap w-full border-b border-gray-border">
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto pb-6">
+          {/* Tabs - pill segmented style */}
+          <div className="w-full px-6 pt-6">
+            <nav className="grid grid-cols-4 gap-2 items-center" style={{backgroundColor:'#F8F9F9', padding:'5px', borderRadius:'10px', border:'1px solid #C8C8C8'}}>
           <button 
             onClick={() => setActiveTab('content')}
-            className={`basis-1/4 flex-1 min-w-[25%] text-center px-4 md:px-8 py-2 border-b-2 font-medium text-sm md:text-base ${
-              activeTab === 'content' 
-                ? 'border-b-2' 
-                : 'border-transparent'
+                className={`w-full flex items-center justify-center space-x-2 py-1.5 sm:py-2 px-4 sm:px-6 rounded-lg font-medium text-sm transition-colors whitespace-nowrap ${
+                  activeTab === 'content' ? 'text-white' : ''
             }`} 
             style={{
-              borderColor: activeTab === 'content' ? '#6E2168' : 'transparent',
               backgroundColor: activeTab === 'content' ? '#6E2168' : '#F8F9F9',
-              color: activeTab === 'content' ? '#FFFFFF' : '#545D6B'
+                  color: activeTab === 'content' ? '#FFFFFF' : '#374151'
             }}
           >
-            Content
+                <span>Content</span>
           </button>
           <button 
             onClick={() => setActiveTab('custom-prompt')}
-            className={`basis-1/4 flex-1 min-w-[25%] text-center px-4 md:px-8 py-2 border-b-2 font-medium text-sm md:text-base ${
-              activeTab === 'custom-prompt' 
-                ? 'border-b-2' 
-                : 'border-transparent'
+                className={`w-full flex items-center justify-center space-x-2 py-1.5 sm:py-2 px-4 sm:px-6 rounded-lg font-medium text-sm transition-colors whitespace-nowrap ${
+                  activeTab === 'custom-prompt' ? 'text-white' : ''
             }`} 
             style={{
-              borderColor: activeTab === 'custom-prompt' ? '#6E2168' : 'transparent',
               backgroundColor: activeTab === 'custom-prompt' ? '#6E2168' : '#F8F9F9',
-              color: activeTab === 'custom-prompt' ? '#FFFFFF' : '#545D6B'
+                                color: activeTab === 'custom-prompt' ? '#FFFFFF' : '#374151'
             }}
           >
-            <div className="flex items-center justify-center space-x-1">
               <SparklesIcon className="h-4 w-4" />
               <span>AI Prompt</span>
-            </div>
           </button>
           <button 
             onClick={() => setActiveTab('preview')}
-            className={`basis-1/4 flex-1 min-w-[25%] text-center px-4 md:px-8 py-2 border-b-2 font-medium text-sm md:text-base ${
-              activeTab === 'preview' 
-                ? 'border-b-2' 
-                : 'border-transparent'
+                className={`w-full flex items-center justify-center space-x-2 py-1.5 sm:py-2 px-4 sm:px-6 rounded-lg font-medium text-sm transition-colors whitespace-nowrap ${
+                  activeTab === 'preview' ? 'text-white' : ''
             }`} 
             style={{
-              borderColor: activeTab === 'preview' ? '#6E2168' : 'transparent',
               backgroundColor: activeTab === 'preview' ? '#6E2168' : '#F8F9F9',
-              color: activeTab === 'preview' ? '#FFFFFF' : '#545D6B'
+                                color: activeTab === 'preview' ? '#FFFFFF' : '#374151'
             }}
           >
-            Preview
+                <span>Preview</span>
           </button>
           <button 
             onClick={() => setActiveTab('schedule')}
-            className={`basis-1/4 flex-1 min-w-[25%] text-center px-4 md:px-8 py-2 border-b-2 font-medium text-sm md:text-base ${
-              activeTab === 'schedule' 
-                ? 'border-b-2' 
-                : 'border-transparent'
+                className={`w-full flex items-center justify-center space-x-2 py-1.5 sm:py-2 px-4 sm:px-6 rounded-lg font-medium text-sm transition-colors whitespace-nowrap ${
+                  activeTab === 'schedule' ? 'text-white' : ''
             }`} 
             style={{
-              borderColor: activeTab === 'schedule' ? '#6E2168' : 'transparent',
               backgroundColor: activeTab === 'schedule' ? '#6E2168' : '#F8F9F9',
-              color: activeTab === 'schedule' ? '#FFFFFF' : '#545D6B'
+                                color: activeTab === 'schedule' ? '#FFFFFF' : '#374151'
             }}
           >
-            Schedule
+                <span>Schedule</span>
           </button>
+            </nav>
         </div>
-
-        {/* Content */}
-        <div className="min-h-[400px] max-h-[60vh] overflow-y-auto pb-6">
           {renderContent()}
         </div>
 

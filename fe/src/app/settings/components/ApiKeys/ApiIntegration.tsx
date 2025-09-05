@@ -32,7 +32,7 @@ export default function ApiIntegration({ integration, showApiKey, onToggleApiKey
       case 'error':
         return `${baseClasses} bg-red-700 text-white`;
       case 'disconnected':
-        return `${baseClasses} bg-gray-400 text-white`;
+        return `${baseClasses} bg-gray-400 text-black`;
       default:
         return `${baseClasses} bg-gray-400 text-white`;
     }
@@ -64,7 +64,7 @@ export default function ApiIntegration({ integration, showApiKey, onToggleApiKey
           <p className="text-[#545D6B] text-sm mb-2 break-words max-w-full">{integration.description}</p>
           <p className="text-[#545D6B] text-xs">Last sync: {integration.lastSync}</p>
         </div>
-        <button className="bg-[#F7F1E9] border border-[#340B37] text-[#340B37] px-3 sm:px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center sm:justify-start space-x-2 transition-colors hover:bg-[#F7F1E9]/80 w-full sm:w-auto flex-shrink-0">
+        <button className="bg-[#F7F1E9] border border-[#340B37] text-[#340B37] px-3 sm:px-4 h-12 rounded-lg text-sm font-medium flex items-center justify-center sm:justify-start space-x-2 transition-colors hover:bg-[#F7F1E9]/80 w-full sm:w-auto flex-shrink-0">
           <BeakerIcon className="h-4 w-4" />
           <span>Test</span>
         </button>
@@ -87,7 +87,7 @@ export default function ApiIntegration({ integration, showApiKey, onToggleApiKey
                 <input
                   type={field.type === 'password' && showApiKey ? 'text' : field.type}
                   placeholder={field.placeholder}
-                  className="w-full max-w-full px-3 py-2 border border-gray-border rounded-lg text-sm text-[#545D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full max-w-full h-12 px-3 border border-gray-border rounded-lg text-sm text-[#545D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   required={field.required}
                 />
                 {field.type === 'password' && (

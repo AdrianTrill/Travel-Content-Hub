@@ -106,7 +106,7 @@ export default function Sidebar({ quickStats, currentPage = 'dashboard' }: Sideb
   }, [animateStats, quickStats]);
 
   return (
-    <aside className="w-full sm:w-64 md:w-72 bg-white border-r border-gray-border p-4 md:p-6 md:sticky md:top-0 md:self-start z-10">
+    <aside className="w-full sm:w-64 md:w-72 bg-white border-r border-gray-border p-4 md:p-6 md:sticky md:top-0 md:h-screen z-10">
       <AnimatedContainer direction="up" delay={animateStats ? 0.1 : 0}>
         <div className="mb-8">
           <h3 className="text-xs font-semibold text-gray-medium uppercase tracking-wider mb-3">

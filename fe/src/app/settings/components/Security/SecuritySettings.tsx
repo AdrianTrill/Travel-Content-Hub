@@ -103,7 +103,7 @@ export default function SecuritySettings() {
                     type="number"
                     value={apiLimits.hourlyLimit}
                     onChange={(e) => setApiLimits(prev => ({ ...prev, hourlyLimit: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-border rounded-lg text-sm text-[#545D6B] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full h-12 px-3 border border-gray-border rounded-lg text-sm text-[#545D6B] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     style={{backgroundColor: '#FFFFFF'}}
                   />
                 </div>
@@ -127,7 +127,7 @@ export default function SecuritySettings() {
 
       <AnimatedContainer direction="up" delay={0.6}>
         <div className="flex justify-end mt-6 sm:mt-8 w-full">
-          <button className="bg-[#6E2168] hover:bg-[#6E2168]/90 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium flex items-center space-x-2 transition-colors w-full sm:w-auto justify-center sm:justify-start">
+          <button className="bg-[#6E2168] hover:bg-[#6E2168]/90 text-white px-4 sm:px-6 h-12 rounded-lg font-medium flex items-center space-x-2 transition-colors w-full sm:w-auto justify-center sm:justify-start">
             <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2zM8 7h8M8 11h8M8 15h8" />
             </svg>
