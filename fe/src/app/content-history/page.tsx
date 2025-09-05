@@ -479,7 +479,7 @@ export default function ContentHistory() {
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
                   {/* Left side - Content Type Label */}
                   <div className="flex items-center space-x-3">
-                      <div className="inline-flex items-center h-7 px-2 rounded-full border" style={{backgroundColor: '#F7F1E9', borderColor: '#DAE1E9'}}>
+                      <div className="inline-flex items-center h-7 px-2 rounded-full border space-x-2" style={{backgroundColor: '#F7F1E9', borderColor: '#DAE1E9'}}>
                         {getContentTypeIcon(content.type, "h-4 w-4", {color: '#6E2168'})}
                       <span className="text-sm font-medium" style={{color: '#340B37'}}>{content.type}</span>
                     </div>
