@@ -458,19 +458,19 @@ export default function ContentGeneration() {
                   
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 space-y-2 sm:space-y-0">
                     <div className="flex items-center space-x-2">
-                      <div className="inline-flex items-center h-7 px-2 rounded-full" style={{backgroundColor: '#F7F1E9'}}>
+                      <div className="inline-flex items-center h-7 px-2 rounded-full space-x-2" style={{backgroundColor: '#F7F1E9'}}>
                         {getContentTypeIcon(s.type, "h-4 w-4", {color: '#6E2168'})}
                         <span className="text-sm font-medium" style={{color: '#6E2168'}}>{s.type}</span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3 text-xs sm:text-sm text-gray-dark">
-                      <span className="flex items-center space-x-1">
+                      <span className="flex items-center space-x-2">
                         <svg className="h-3 w-3 sm:h-4 sm:w-4 text-gray-medium" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span>{s.readingTime}</span>
                       </span>
-                      <span className="flex items-center space-x-1 text-success">
+                      <span className="flex items-center space-x-2 text-success">
                         <svg className="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                         </svg>
