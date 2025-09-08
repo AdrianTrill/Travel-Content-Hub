@@ -590,14 +590,6 @@ export default function ContentHistory() {
                       <span>View</span>
                     </button>
                       <button 
-                        onClick={() => setEditModal({ open: true, item: content })}
-                        className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-2" 
-                        style={{backgroundColor: '#F7F1E9', borderColor: '#6E2168', color: '#6E2168'}}
-                      >
-                      <PencilIcon className="h-3 w-3" style={{color: '#6E2168'}} />
-                      <span>Edit</span>
-                    </button>
-                      <button 
                         onClick={() => setShareModal({ open: true, item: content })}
                         className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-2" 
                         style={{backgroundColor: '#F7F1E9', borderColor: '#6E2168', color: '#6E2168'}}
@@ -988,7 +980,7 @@ export default function ContentHistory() {
                 className="h-12 px-3 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-2"
                 style={{backgroundColor: '#6E2168', color: '#FFFFFF'}}
                 >
-                <span>Save Changes</span>
+                <span>Update Post</span>
                 </button>
             </div>
           </div>

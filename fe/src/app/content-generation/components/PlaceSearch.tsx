@@ -228,50 +228,48 @@ export default function PlaceSearch({ onPlaceSelect, selectedPlace }: PlaceSearc
             <div
               key={index}
               onClick={() => handlePlaceSelect(place)}
-              className="px-4 h-12 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors flex items-center"
+              className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="font-semibold text-gray-900 truncate">{place.name}</span>
-                    <span className="inline-flex items-center h-7 px-2 text-xs bg-blue-100 text-blue-700 rounded-full whitespace-nowrap">
-                      {place.type}
-                    </span>
-                    <span className="inline-flex items-center h-7 px-2 text-xs bg-gray-100 text-gray-600 rounded-full whitespace-nowrap">
-                      {place.country}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-2 leading-relaxed">{place.description}</p>
-                  {place.highlights.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {place.highlights.slice(0, 4).map((highlight, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center h-7 px-2 text-xs bg-green-100 text-green-700 rounded-full"
-                        >
-                          {highlight}
-                        </span>
-                      ))}
-                      {place.highlights.length > 4 && (
-                        <span className="inline-flex items-center h-7 px-2 text-xs bg-gray-100 text-gray-600 rounded-full">
-                          +{place.highlights.length - 4} more
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  {place.categories.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {place.categories.map((category, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center h-7 px-2 text-xs bg-purple-100 text-purple-700 rounded-full"
-                        >
-                          {category}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center flex-wrap gap-2 mb-1">
+                  <span className="font-semibold text-gray-900 truncate">{place.name}</span>
+                  <span className="inline-flex items-center px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full whitespace-nowrap">
+                    {place.type}
+                  </span>
+                  <span className="inline-flex items-center px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full whitespace-nowrap">
+                    {place.country}
+                  </span>
                 </div>
+                <p className="text-sm text-gray-700 mb-2 leading-relaxed line-clamp-3">{place.description}</p>
+                {place.highlights.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {place.highlights.slice(0, 4).map((highlight, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full"
+                      >
+                        {highlight}
+                      </span>
+                    ))}
+                    {place.highlights.length > 4 && (
+                      <span className="inline-flex items-center px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
+                        +{place.highlights.length - 4} more
+                      </span>
+                    )}
+                  </div>
+                )}
+                {place.categories.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {place.categories.map((category, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full"
+                      >
+                        {category}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}

@@ -25,6 +25,7 @@ interface Content {
   best_times?: string | null;
   cautions?: string | null;
   imageUrl?: string | null;
+  publishedId?: string; // if already published, store id to update on republish
 }
 
 export default function ContentGeneration() {
@@ -175,7 +176,18 @@ export default function ContentGeneration() {
           start_date: startDate?.toISOString().split('T')[0] || '', 
           end_date: endDate?.toISOString().split('T')[0] || '', 
           content_type: contentType, 
-          language: 'en' 
+          language: 'en',
+          style_guidelines: {
+            voice: 'human, warm, seasoned travel writer',
+            avoid_phrases: ['nestled', 'rich tapestry', 'vibrant', 'iconic', 'hidden gem', 'offers a glimpse', 'in conclusion', 'overall'],
+            rules: [
+              'Prefer concrete details over adjectives',
+              'Vary sentence length (mix short and medium)',
+              'Use active voice and second person where natural',
+              'No generic openings or summaries',
+              'Include 1-2 specific tips or micro-details',
+            ],
+          },
         })
       });
       
@@ -361,7 +373,24 @@ export default function ContentGeneration() {
                       const res = await fetch(`${apiUrl}/generate-content`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ destination, start_date: startDate?.toISOString().split('T')[0], end_date: endDate?.toISOString().split('T')[0], content_type: contentType, language: 'en' })
+                        body: JSON.stringify({ 
+                          destination, 
+                          start_date: startDate?.toISOString().split('T')[0], 
+                          end_date: endDate?.toISOString().split('T')[0], 
+                          content_type: contentType, 
+                          language: 'en',
+                          style_guidelines: {
+                            voice: 'human, warm, seasoned travel writer',
+                            avoid_phrases: ['nestled', 'rich tapestry', 'vibrant', 'iconic', 'hidden gem', 'offers a glimpse', 'in conclusion', 'overall'],
+                            rules: [
+                              'Prefer concrete details over adjectives',
+                              'Vary sentence length (mix short and medium)',
+                              'Use active voice and second person where natural',
+                              'No generic openings or summaries',
+                              'Include 1-2 specific tips or micro-details',
+                            ],
+                          },
+                        })
                       });
                       if (!res.ok) {
                         let message = 'Request failed';
@@ -387,6 +416,7 @@ export default function ContentGeneration() {
                         price_range: s.price_range ?? null,
                         best_times: s.best_times ?? null,
                         cautions: s.cautions ?? null,
+                        publishedId: undefined,
                       }));
                       setSuggestions(mapped);
                     } catch (e) {
@@ -701,6 +731,158 @@ export default function ContentGeneration() {
         destination={destination}
         onUpdate={handleContentUpdate}
         onRegenerate={handleRegenerate}
+        onPublish={async (c) => {
+          const key = `${c.title}-${c.content}`;
+          setPublishing(prev => ({ ...prev, [key]: true }));
+          try {
+            const isUpdate = Boolean(c.publishedId);
+            const url = isUpdate ? `${apiUrl}/published/${c.publishedId}` : `${apiUrl}/publish`;
+            const method = isUpdate ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+              method,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                title: c.title,
+                content: c.content,
+                type: c.type,
+                reading_time: c.readingTime,
+                quality: c.quality,
+                tags: c.tags,
+                highlights: c.highlights || [],
+                neighborhoods: c.neighborhoods || [],
+                recommended_spots: c.recommended_spots || [],
+                price_range: c.price_range ?? null,
+                best_times: c.best_times ?? null,
+                cautions: c.cautions ?? null,
+                destination: destination || undefined,
+                image_url: c.imageUrl || undefined,
+                status: 'Published',
+              })
+            });
+            if (!res.ok) {
+              const err = await res.json().catch(() => null);
+              alert(`Failed to publish: ${err?.message || res.statusText}`);
+              return;
+            }
+            const created = await res.json();
+            try {
+              const CACHE_KEY = 'published_content_cache';
+              const CACHE_TIMESTAMP_KEY = 'published_content_timestamp';
+              const CACHE_VERSION_KEY = 'published_content_version';
+              const CURRENT_CACHE_VERSION = '1.0';
+              const existing = localStorage.getItem(CACHE_KEY);
+              const items = existing ? JSON.parse(existing) : [];
+              let updated;
+              if (c.publishedId) {
+                // update existing entry in cache
+                updated = items.map((it: any) => it.id === c.publishedId ? { ...it, ...created } : it);
+              } else {
+                updated = [created, ...items];
+              }
+              localStorage.setItem(CACHE_KEY, JSON.stringify(updated));
+              localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+              localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
+              window.dispatchEvent(new CustomEvent('published-cache-updated'));
+              setToast(c.publishedId ? 'Post updated' : 'Post successfully published');
+              setTimeout(() => setToast(null), 2500);
+              // also tag the suggestion with publishedId so future publishes update
+              const idToStore = c.publishedId || created?.id;
+              if (idToStore) {
+                setSuggestions(prev => prev.map(s => (s.title === c.title && s.content === c.content) ? { ...s, publishedId: idToStore } : s));
+              }
+            } catch {}
+          } catch (e) {
+            console.error(e);
+            alert('Failed to publish');
+          } finally {
+            setPublishing(prev => ({ ...prev, [key]: false }));
+          }
+        }}
+        onSchedule={async ({ content: c, scheduleAt }) => {
+          const key = `${c.title}-${c.content}`;
+          setPublishing(prev => ({ ...prev, [key]: true }));
+          try {
+            const isUpdate = Boolean(c.publishedId);
+            const url = isUpdate ? `${apiUrl}/published/${c.publishedId}` : `${apiUrl}/publish`;
+            const method = isUpdate ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+              method,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                title: c.title,
+                content: c.content,
+                type: c.type,
+                reading_time: c.readingTime,
+                quality: c.quality,
+                tags: c.tags,
+                highlights: c.highlights || [],
+                neighborhoods: c.neighborhoods || [],
+                recommended_spots: c.recommended_spots || [],
+                price_range: c.price_range ?? null,
+                best_times: c.best_times ?? null,
+                cautions: c.cautions ?? null,
+                destination: destination || undefined,
+                image_url: c.imageUrl || undefined,
+                status: 'Scheduled',
+                scheduled_at: scheduleAt || undefined,
+              })
+            });
+            if (!res.ok) {
+              const err = await res.json().catch(() => null);
+              alert(`Failed to schedule: ${err?.message || res.statusText}`);
+              return;
+            }
+            const created = await res.json();
+            try {
+              const CACHE_KEY = 'published_content_cache';
+              const CACHE_TIMESTAMP_KEY = 'published_content_timestamp';
+              const CACHE_VERSION_KEY = 'published_content_version';
+              const CURRENT_CACHE_VERSION = '1.0';
+              const existing = localStorage.getItem(CACHE_KEY);
+              const items = existing ? JSON.parse(existing) : [];
+              // Create a scheduled item in the expected shape for history view
+              const scheduleDateTime = (scheduleAt || '').split('T');
+              const dateStr = scheduleDateTime[0] || '';
+              const timeStr = (scheduleDateTime[1] || '').slice(0,5) || '';
+              const scheduledItem = {
+                id: created?.id || c.publishedId || `temp-${Date.now()}`,
+                type: c.type,
+                status: 'Scheduled',
+                title: c.title,
+                content: c.content,
+                tags: c.tags || [],
+                location: destination || '',
+                date: dateStr,
+                time: timeStr,
+                statusColor: 'text-black',
+                statusBg: '#FFC938',
+                views: 0,
+                shares: 0,
+                engagement_rate: 0,
+                growth_rate: 0,
+              };
+              // if updating existing, replace, else prepend
+              const updated = (c.publishedId)
+                ? items.map((it: any) => it.id === c.publishedId ? { ...it, ...scheduledItem } : it)
+                : [scheduledItem, ...items];
+              localStorage.setItem(CACHE_KEY, JSON.stringify(updated));
+              localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+              localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
+              window.dispatchEvent(new CustomEvent('published-cache-updated'));
+          setToast('Post scheduled');
+              setTimeout(() => setToast(null), 2500);
+              const idToStore = c.publishedId || created?.id;
+              if (idToStore) {
+                setSuggestions(prev => prev.map(s => (s.title === c.title && s.content === c.content) ? { ...s, publishedId: idToStore } : s));
+              }
+            } catch {}
+          } catch (e) {
+            console.error(e);
+            alert('Failed to schedule');
+          } finally {
+            setPublishing(prev => ({ ...prev, [key]: false }));
+          }
+        }}
         loading={loading}
       />
       )}

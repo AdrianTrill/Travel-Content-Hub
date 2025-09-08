@@ -18,6 +18,7 @@ interface ContentEditorProps {
     best_times?: string | null;
     cautions?: string | null;
     imageUrl?: string | null;
+    publishedId?: string;
   };
   destination?: string;
   onUpdate?: (updatedContent: {
@@ -50,10 +51,45 @@ interface ContentEditorProps {
     cautions?: string | null;
     imageUrl?: string | null;
   }) => void;
+  onPublish?: (content: {
+    title: string;
+    content: string;
+    type: string;
+    readingTime: string;
+    quality: string;
+    tags: string[];
+    highlights?: string[];
+    neighborhoods?: string[];
+    recommended_spots?: string[];
+    price_range?: string | null;
+    best_times?: string | null;
+    cautions?: string | null;
+    imageUrl?: string | null;
+    publishedId?: string;
+  }) => void | Promise<void>;
+  onSchedule?: (args: {
+    content: {
+      title: string;
+      content: string;
+      type: string;
+      readingTime: string;
+      quality: string;
+      tags: string[];
+      highlights?: string[];
+      neighborhoods?: string[];
+      recommended_spots?: string[];
+      price_range?: string | null;
+      best_times?: string | null;
+      cautions?: string | null;
+      imageUrl?: string | null;
+      publishedId?: string;
+    };
+    scheduleAt?: string | null;
+  }) => void | Promise<void>;
   loading?: boolean;
 }
 
-export default function ContentEditor({ isOpen, onClose, content, destination, onUpdate, onRegenerate, loading }: ContentEditorProps) {
+export default function ContentEditor({ isOpen, onClose, content, destination, onUpdate, onRegenerate, onPublish, onSchedule, loading }: ContentEditorProps) {
   const [activeTab, setActiveTab] = useState('content');
   const [editedTitle, setEditedTitle] = useState(content.title);
   const [editedContent, setEditedContent] = useState(content.content);
@@ -69,6 +105,27 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
   const [customPromptError, setCustomPromptError] = useState<string | null>(null);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const [showGeneratedContent, setShowGeneratedContent] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState<string>('');
+  const [scheduleTime, setScheduleTime] = useState<string>('');
+  const [actionLoading, setActionLoading] = useState<boolean>(false);
+  const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState<boolean>(false);
+
+  const formatTimeDisplay = (time: string) => {
+    if (!time) return '';
+    const [h, m] = time.split(':').map(Number);
+    const suffix = h >= 12 ? 'PM' : 'AM';
+    const hour12 = ((h + 11) % 12) + 1;
+    return `${hour12}:${String(m).padStart(2, '0')} ${suffix}`;
+  };
+  const buildTimeOptions = () => {
+    const options: string[] = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        options.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+      }
+    }
+    return options;
+  };
 
   // Update local state when content prop changes
   React.useEffect(() => {
@@ -99,7 +156,8 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: customPrompt.trim(),
+          // Constrain AI to improve current content without changing topic drastically
+          prompt: `Improve the following content while preserving its original topic, intent, and destination context. Keep tags/themes aligned. Write in a human, warm, seasoned travel-writer voice. Avoid AI-sounding phrases (nestled, rich tapestry, iconic, hidden gem, offers a glimpse). Prefer concrete details, vary sentence length, use active voice, no generic openings or summaries. Include 1-2 specific tips.\n\nUser instruction: ${customPrompt.trim()}\n\nOriginal content title: ${content.title}\nOriginal content body: ${content.content}`,
           destination: destination,
           content_type: content.type,
           language: 'en',
@@ -206,11 +264,63 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
     onClose();
   };
 
+  const buildCurrentContent = () => ({
+    ...content,
+    title: editedTitle,
+    content: editedContent,
+    tags: editedTags,
+    highlights: editedHighlights,
+    neighborhoods: editedNeighborhoods,
+    recommended_spots: editedRecommendedSpots,
+    price_range: editedPriceRange || null,
+    best_times: editedBestTimes || null,
+    cautions: editedCautions || null,
+  });
+
+  const handlePublishNow = async () => {
+    if (!onPublish) return;
+    try {
+      setActionLoading(true);
+      await onPublish(buildCurrentContent());
+      onClose();
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSchedulePost = async () => {
+    if (!onSchedule) return;
+    const scheduleAt = scheduleDate && scheduleTime ? `${scheduleDate}T${scheduleTime}:00` : null;
+    try {
+      setActionLoading(true);
+      await onSchedule({ content: buildCurrentContent(), scheduleAt });
+      onClose();
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'content':
         return (
           <div className="p-6 space-y-6">
+            {/* Image Preview (if available) */}
+            {content.imageUrl && (
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{color: '#340B37'}}>
+                  Image
+                </label>
+                <div className="w-full">
+                  <img
+                    src={content.imageUrl}
+                    alt="Generated visual"
+                    className="w-full max-h-64 object-cover rounded-lg border border-gray-border"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                  />
+                </div>
+              </div>
+            )}
             {/* Title Field */}
             <div>
               <label className="block text-sm font-medium mb-2" style={{color: '#340B37'}}>
@@ -382,6 +492,16 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
           <div className="p-6">
             <h3 className="text-lg font-semibold mb-4" style={{color: '#340B37'}}>Preview for Website</h3>
             <div className="bg-white border border-gray-border rounded-lg p-6">
+              {content.imageUrl && (
+                <div className="mb-4">
+                  <img
+                    src={content.imageUrl}
+                    alt="Preview image"
+                    className="w-full max-h-80 object-cover rounded-lg border border-gray-border"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                  />
+                </div>
+              )}
               <h1 className="text-lg font-bold mb-4" style={{color: '#340B37'}}>{editedTitle}</h1>
               <p className="text-sm leading-relaxed" style={{color: '#340B37'}}>{editedContent}</p>
             </div>
@@ -400,8 +520,9 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                 <div className="relative">
                   <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{color: '#374151'}} />
                   <input
-                    type="text"
-                    placeholder="dd----yyyy"
+                    type="date"
+                    value={scheduleDate}
+                    onChange={(e) => setScheduleDate(e.target.value)}
                     className="w-full h-12 pl-10 pr-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     style={{backgroundColor: '#FFFFFF', color: '#374151'}}
                   />
@@ -415,12 +536,33 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                 </label>
                 <div className="relative">
                   <ClockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{color: '#374151'}} />
-                  <input
-                    type="text"
-                    placeholder="--:--"
-                    className="w-full h-12 pl-10 pr-4 border border-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsTimeDropdownOpen(!isTimeDropdownOpen)}
+                      className="w-full h-12 pl-10 pr-10 border border-gray-border rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent flex items-center justify-between"
                     style={{backgroundColor: '#FFFFFF', color: '#374151'}}
-                  />
+                    >
+                      <span>{scheduleTime ? formatTimeDisplay(scheduleTime) : 'Select time'}</span>
+                      <svg className={`h-4 w-4 transition-transform ${isTimeDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#374151'}}>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {isTimeDropdownOpen && (
+                      <div className="absolute z-20 w-full mt-1 bg-white border border-gray-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        {buildTimeOptions().map((t) => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => { setScheduleTime(t); setIsTimeDropdownOpen(false); }}
+                            className={`w-full h-10 px-4 text-left hover:bg-gray-50 ${scheduleTime === t ? 'bg-primary text-white' : 'text-gray-dark'}`}
+                          >
+                            <span>{formatTimeDisplay(t)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -486,7 +628,7 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold" style={{color: '#340B37'}}>AI Generated Content</h3>
                   <div className="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded">
-                    Generated from: "{generatedContent.generated_from_prompt}"
+                    Refined with AI
                   </div>
                 </div>
                 
@@ -624,17 +766,24 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
             <span>Previous</span>
           </button>
           <div className="flex space-x-3">
-            <button className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
+            <button onClick={handleSchedulePost} disabled={actionLoading} className="h-12 px-3 border rounded text-sm hover:bg-gray-50 flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed" style={{backgroundColor: '#F7F1E9', borderColor: '#340B37', color: '#340B37'}}>
+              {actionLoading && (
+                <svg className="animate-spin h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              )}
               <ClockIcon className="h-3 w-3" style={{color: '#340B37'}} />
-              <span>Schedule Post</span>
+              <span>{actionLoading ? 'Scheduling...' : 'Schedule Post'}</span>
             </button>
             <button 
-              onClick={handleSave}
-              className="h-12 px-3 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-1" 
+              onClick={handlePublishNow}
+              disabled={actionLoading}
+              className="h-12 px-3 rounded text-sm hover:opacity-90 transition-opacity flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed" 
               style={{backgroundColor: '#6E2168', color: '#FFFFFF'}}
             >
-              <span>Next</span>
-              <ChevronRightIcon className="h-3 w-3" />
+              <PaperAirplaneIcon className="h-3 w-3" />
+              <span>{actionLoading ? 'Publishing...' : 'Publish Now'}</span>
             </button>
           </div>
         </div>
@@ -654,7 +803,7 @@ export default function ContentEditor({ isOpen, onClose, content, destination, o
             <h2 className="text-xl font-semibold" style={{color: '#340B37'}}>Content Editor</h2>
           </div>
           <button
-            onClick={handleSave}
+            onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <XMarkIcon className="h-6 w-6 text-gray-medium" />
